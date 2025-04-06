@@ -1,0 +1,12 @@
+{
+  "domain": "onlycat",
+  "name": "OnlyCat",
+  "codeowners": [
+    "@Alex-Ala"
+  ],
+  "config_flow": true,
+  "documentation": "",
+  "iot_class": "cloud_push",
+  "issue_tracker": "",
+  "version": "0.1.0"
+}

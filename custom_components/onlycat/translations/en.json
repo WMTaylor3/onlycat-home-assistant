@@ -1,0 +1,20 @@
+{
+    "config": {
+        "step": {
+            "user": {
+                "description": "API Credentials for OnlyCat. Acquire them from the OnlyCat app.",
+                "data": {
+                    "token": "OnlyCat Device Token"
+                }
+            }
+        },
+        "error": {
+            "auth": "Token wrong.",
+            "connection": "Unable to connect to the server.",
+            "unknown": "Unknown error occurred."
+        },
+        "abort": {
+            "already_configured": "This entry is already configured."
+        }
+    }
+}
