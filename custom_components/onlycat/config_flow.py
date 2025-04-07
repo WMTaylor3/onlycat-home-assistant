@@ -18,6 +18,7 @@ from .api import (
     OnlyCatApiClientCommunicationError,
     OnlyCatApiClientError,
 )
+from .data import OnlyCatData
 from .const import DOMAIN, LOGGER
 
 
@@ -34,20 +35,19 @@ class OnlyCatFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         _errors = {}
         if user_input is not None:
             try:
-                _LOGGER.debug("Testing credentials and fetching ID")
+                _LOGGER.debug("Initializing API client")
                 client = OnlyCatApiClient(
-                    token=user_input[CONF_ACCESS_TOKEN],
-                    session=async_create_clientsession(self.hass),
+                    user_input[CONF_ACCESS_TOKEN],
+                    session=async_create_clientsession(self.hass)
                 )
-                id = None
-                # TODO: Terrible way to do this. Should be synchronous
-                async def on_user_update(data):
-                    nonlocal id
-                    if data is None or "id" not in data:
-                        raise OnlyCatApiClientAuthenticationError("ID not found")
-                    id = str(data["id"])
-                client.add_event_listener("userUpdate", on_user_update)
+                user_id = None
+                async def on_userUpdate(self, data: dict) -> None:
+                    nonlocal user_id
+                    if data is not None and "id" in data:
+                        user_id = data["id"]
+                client.add_event_listener("userUpdate", on_userUpdate)
                 await client.connect()
+                devices = await client.send_message("getDevices", { "subscribe": False})
                 await client.disconnect()
             except OnlyCatApiClientAuthenticationError as exception:
                 LOGGER.warning(exception)
@@ -59,14 +59,15 @@ class OnlyCatFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 LOGGER.exception(exception)
                 _errors["base"] = "unknown"
             else:
-                if id is None:
-                    id = slugify(user_input[CONF_ACCESS_TOKEN])
-                await self.async_set_unique_id(unique_id=id)
+                _LOGGER.debug("Creating entry with id %s", user_id)
+                await self.async_set_unique_id(unique_id=user_id)
                 self._abort_if_unique_id_configured()
                 return self.async_create_entry(
-                    title=id,
+                    title=devices[0]["deviceId"],
+                    description=devices[0]["description"],
                     data=user_input,
                 )
+
 
         return self.async_show_form(
             step_id="user",

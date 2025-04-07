@@ -2,7 +2,7 @@
   "domain": "onlycat",
   "name": "OnlyCat",
   "codeowners": [
-    "@Alex-Ala"
+    "@OnlyCatAI"
   ],
   "config_flow": true,
   "documentation": "",

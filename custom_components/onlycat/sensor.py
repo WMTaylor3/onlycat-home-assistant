@@ -5,7 +5,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from homeassistant.components.sensor import SensorEntity, SensorEntityDescription
-
 import logging
 _LOGGER = logging.getLogger(__name__)
 
@@ -15,7 +14,7 @@ if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
     from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-    from .data import OnlyCatConfigEntry
+    from .api import OnlyCatConfigEntry
 
 ENTITY_DESCRIPTIONS = (
     SensorEntityDescription(
@@ -39,8 +38,12 @@ async def async_setup_entry(
         )
         for entity_description in ENTITY_DESCRIPTIONS
     )
+    await entry.runtime_data.client.send_message("getDevice", {"deviceId":"OC-xxx","subscribe": True})
     # TODO: For testing. getting no responses
-    await entry.runtime_data.client.send_message("getDevices", None)
+    await entry.runtime_data.client.send_message("getDevices", { "subscribe": True})
+    await entry.runtime_data.client.send_message("getEvents", { "subscribe": True})
+    #await entry.runtime_data.client.send_message("runDeviceCommand", {"deviceId":"OC-xxx","command":"unlock"})
+
 
 
 
@@ -54,15 +57,22 @@ class OnlyCatSensor(SensorEntity):
     ) -> None:
         """Initialize the sensor class."""
         self.entity_description = entity_description
+        self._state = None
+        self._attr_data = None
         api_client.add_event_listener("deviceUpdate", self.on_device_update)
 
     async def on_device_update(self, data: dict) -> None:
         """Handle device update event."""
         _LOGGER.debug("Device update event received: %s", data)
-        self.native_value = data
+        self._state = True
+        self._attr_data = str(data)
 
     @property
     def native_value(self) -> str | None:
         """Return the native value of the sensor."""
         # TODO implenent native_value
-        return ""
+        return self._state
+
+    @property 
+    def data(self) -> str | None:
+        return self._attr_data

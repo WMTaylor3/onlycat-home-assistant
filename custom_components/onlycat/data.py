@@ -18,6 +18,6 @@ type OnlyCatConfigEntry = ConfigEntry[OnlyCatData]
 @dataclass
 class OnlyCatData:
     """Data for the OnlyCat integration."""
-
+    #user_id: int | None
     client: OnlyCatApiClient
-    integration: Integration
+    

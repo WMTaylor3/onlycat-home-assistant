@@ -2,9 +2,8 @@
 Custom integration to integrate OnlyCat with Home Assistant.
 
 For more details about this integration, please refer to
-https://github.com/TODO
+https://github.com/OnlyCatAI/onlycat-home-assistant
 """
-
 from __future__ import annotations
 
 from datetime import timedelta
@@ -21,7 +20,7 @@ from .data import OnlyCatData
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
 
-    from .data import OnlyCatConfigEntry
+    from .api import OnlyCatConfigEntry
 
 PLATFORMS: list[Platform] = [
     Platform.SENSOR
@@ -38,15 +37,14 @@ async def async_setup_entry(
         client=OnlyCatApiClient(
             token=entry.data[CONF_ACCESS_TOKEN],
             session=async_get_clientsession(hass),
-        ),
-        integration=async_get_loaded_integration(hass, entry.domain),
+        )
     )
+    
 
     await entry.runtime_data.client.connect()
     
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     entry.async_on_unload(entry.add_update_listener(async_reload_entry))
-
     return True
 
 
