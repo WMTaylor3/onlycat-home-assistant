@@ -41,10 +41,10 @@ class OnlyCatFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                     session=async_create_clientsession(self.hass)
                 )
                 user_id = None
-                async def on_userUpdate(self, data: dict) -> None:
+                async def on_userUpdate(data: any) -> None:
                     nonlocal user_id
                     if data is not None and "id" in data:
-                        user_id = data["id"]
+                        user_id = str(data["id"])
                 client.add_event_listener("userUpdate", on_userUpdate)
                 await client.connect()
                 devices = await client.send_message("getDevices", { "subscribe": False})
@@ -62,10 +62,13 @@ class OnlyCatFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 _LOGGER.debug("Creating entry with id %s", user_id)
                 await self.async_set_unique_id(unique_id=user_id)
                 self._abort_if_unique_id_configured()
+                return_data = dict()
+                return_data["devices"] = devices
+                return_data["user_id"] = user_id
+                return_data["token"] = user_input[CONF_ACCESS_TOKEN]
                 return self.async_create_entry(
-                    title=devices[0]["deviceId"],
-                    description=devices[0]["description"],
-                    data=user_input,
+                    title=user_id,
+                    data=return_data,
                 )
 
 

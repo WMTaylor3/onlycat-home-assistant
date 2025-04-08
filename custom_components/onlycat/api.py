@@ -83,16 +83,14 @@ class OnlyCatApiClient:
         return
     
     async def disconnect(self) -> None:
-        """Disconnect from the API."""
         _LOGGER.debug("Disconnecting from API")
         await self._socket.disconnect()
+        await self._socket.shutdown()
     
     async def on_connect(self) -> None:
-        """Handle socket connection."""
         _LOGGER.debug("Connected to API")
     
     async def on_disconnect(self) -> None:
-        """Handle socket disconnection."""
         _LOGGER.debug("Disconnected from API")
 
     async def on_user_update(self, data: dict) -> None:

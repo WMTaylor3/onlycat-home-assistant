@@ -70,7 +70,6 @@ class OnlyCatSensor(SensorEntity):
     @property
     def native_value(self) -> str | None:
         """Return the native value of the sensor."""
-        # TODO implenent native_value
         return self._state
 
     @property 
