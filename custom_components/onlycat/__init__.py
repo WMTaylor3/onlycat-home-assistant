@@ -11,7 +11,6 @@ from typing import TYPE_CHECKING
 
 from homeassistant.const import Platform, CONF_ACCESS_TOKEN
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
-from homeassistant.loader import async_get_loaded_integration
 
 from .api import OnlyCatApiClient
 from .const import DOMAIN, LOGGER
@@ -22,7 +21,7 @@ if TYPE_CHECKING:
     from .data import OnlyCatConfigEntry
 
 PLATFORMS: list[Platform] = [
-    Platform.SENSOR
+    Platform.BINARY_SENSOR
 ]
 
 

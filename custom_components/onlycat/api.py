@@ -7,17 +7,14 @@ import socketio
 from typing import Any
 
 import aiohttp
-from aiohttp_socks import ProxyConnector, ProxyType
 import logging
 
 from .data import OnlyCatData
-from homeassistant.config_entries import ConfigEntry
 
 _LOGGER = logging.getLogger(__name__)
 
 ONLYCAT_URL = "https://gateway.onlycat.com"
 
-type OnlyCatConfigEntry = ConfigEntry[OnlyCatApiClient]
 
 class OnlyCatApiClientError(Exception):
     """Exception to indicate a general API error."""
@@ -48,7 +45,7 @@ class OnlyCatApiClient:
         """Sample API Client."""
         self._token = token
         self._data = data
-        self._session = aiohttp.ClientSession(connector=ProxyConnector("10.4.0.5",8080,ProxyType.HTTP))
+        self._session = session
         self._socket = socket or socketio.AsyncClient(
             http_session=self._session,
             reconnection=True,
