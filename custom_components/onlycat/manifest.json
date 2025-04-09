@@ -5,8 +5,8 @@
     "@OnlyCatAI"
   ],
   "config_flow": true,
-  "documentation": "",
+  "documentation": "https://github.com/OnlyCatAI/onlycat-home-assistant",
   "iot_class": "cloud_push",
-  "issue_tracker": "",
+  "issue_tracker": "https://github.com/OnlyCatAI/onlycat-home-assistant/issues",
   "version": "0.1.0"
 }
