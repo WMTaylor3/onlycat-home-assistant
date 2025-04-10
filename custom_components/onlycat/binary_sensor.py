@@ -2,28 +2,36 @@
 
 from __future__ import annotations
 
+import logging
 from typing import TYPE_CHECKING
 
-from homeassistant.components.binary_sensor import BinarySensorEntity , BinarySensorEntityDescription, BinarySensorDeviceClass
-from homeassistant.helpers.device_registry import DeviceInfo
+from homeassistant.components.binary_sensor import (
+    BinarySensorDeviceClass,
+    BinarySensorEntity,
+    BinarySensorEntityDescription,
+)
 from homeassistant.const import EntityCategory
+from homeassistant.helpers.device_registry import DeviceInfo
 
-import logging
+from .const import DOMAIN
+
 _LOGGER = logging.getLogger(__name__)
 
-from .api import OnlyCatApiClient
-from .const import DOMAIN
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
     from homeassistant.helpers.entity_platform import AddEntitiesCallback
+
+    from .api import OnlyCatApiClient
     from .data import OnlyCatConfigEntry
 
 
 ENTITY_DESCRIPTION = BinarySensorEntityDescription(
-        key="OnlyCat",
-        name="OnlyCat Flap",
-        device_class=BinarySensorDeviceClass.CONNECTIVITY)
+    key="OnlyCat",
+    name="OnlyCat Flap",
+    device_class=BinarySensorDeviceClass.CONNECTIVITY,
+)
+
 
 async def async_setup_entry(
     hass: HomeAssistant,  # noqa: ARG001 Unused function argument: `hass`
@@ -33,20 +41,23 @@ async def async_setup_entry(
     """Set up the sensor platform."""
     devices = []
     for device in entry.data["devices"]:
-        info = await entry.runtime_data.client.send_message("getDevice", {"deviceId":device["deviceId"],"subscribe": True})
+        info = await entry.runtime_data.client.send_message(
+            "getDevice", {"deviceId": device["deviceId"], "subscribe": True}
+        )
         devices.append(device | info)
     async_add_entities(
         OnlyCatConnectionSensor(
             device=device,
             entity_description=ENTITY_DESCRIPTION,
-            api_client = entry.runtime_data.client,
+            api_client=entry.runtime_data.client,
         )
         for device in devices
     )
-    
+
 
 class OnlyCatConnectionSensor(BinarySensorEntity):
     """OnlyCat Sensor class."""
+
     _attr_has_entity_name = True
     _attr_should_poll = False
     _attr_device_class = BinarySensorDeviceClass.CONNECTIVITY
@@ -55,14 +66,12 @@ class OnlyCatConnectionSensor(BinarySensorEntity):
 
     @property
     def device_info(self) -> DeviceInfo:
+        """Return device info to map to a device."""
         return DeviceInfo(
-            identifiers={
-                (DOMAIN, self.device["deviceId"])
-            },
+            identifiers={(DOMAIN, self.device["deviceId"])},
             name=self.device["description"],
-            serial_number=self.device["deviceId"]
+            serial_number=self.device["deviceId"],
         )
-    
 
     def __init__(
         self,
@@ -84,17 +93,8 @@ class OnlyCatConnectionSensor(BinarySensorEntity):
         _LOGGER.debug("Device update event received: %s", data)
         self._attr_raw_data = str(data)
         self.async_write_ha_state()
-        
 
-    @property 
-    def is_on(self) -> bool:
-        return self.device["connectivity"]["connected"]
     @property
-    def native_value(self) -> str | None:
-        """Return the native value of the sensor."""
-        return self._state
-
-    @property 
-    def raw_data(self) -> str | None:
-        return self._attr_raw_data
-    
+    def is_on(self) -> bool:
+        """Return if device is connected."""
+        return self.device["connectivity"]["connected"]

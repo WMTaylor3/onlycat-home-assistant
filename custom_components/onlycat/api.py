@@ -1,15 +1,16 @@
 """OnlyCat API Client."""
 
 from __future__ import annotations
-from types import CoroutineType
+
+import logging
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    import aiohttp
+
+    from .data import OnlyCatData
 
 import socketio
-from typing import Any
-
-import aiohttp
-import logging
-
-from .data import OnlyCatData
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -52,7 +53,8 @@ class OnlyCatApiClient:
             reconnection_attempts=10,
             reconnection_delay=10,
             reconnection_delay_max=10,
-            logger=True, ssl_verify=False
+            logger=True,
+            ssl_verify=False,
         )
         self._socket.on("connect", self.on_connect)
         self._socket.on("disconnect", self.on_disconnect)
@@ -60,39 +62,25 @@ class OnlyCatApiClient:
         self._socket.on("*", self.on_any_event)
 
     async def connect(self) -> None:
-        """Connect to the API."""
+        """Connect to wesocket client."""
         if self._socket.connected:
             return
         _LOGGER.debug("Connecting to API")
-        
+
         await self._socket.connect(
             ONLYCAT_URL,
             transports=["websocket"],
             namespaces="/",
-            headers={
-                "platform": "home-assistant",
-                "device": "onlycat-hass"
-            },
-            auth={
-                "token": self._token
-            }
+            headers={"platform": "home-assistant", "device": "onlycat-hass"},
+            auth={"token": self._token},
         )
         return
-    
+
     async def disconnect(self) -> None:
+        """Disconnect websocket client."""
         _LOGGER.debug("Disconnecting from API")
         await self._socket.disconnect()
         await self._socket.shutdown()
-    
-    async def on_connect(self) -> None:
-        _LOGGER.debug("Connected to API")
-    
-    async def on_disconnect(self) -> None:
-        _LOGGER.debug("Disconnected from API")
-
-    async def on_user_update(self, data: dict) -> None:
-        """Handle user update event."""
-        _LOGGER.debug("User update event received: %s", data)
 
     def add_event_listener(self, event: str, callback: Any) -> None:
         """Add an event listener."""
@@ -105,8 +93,9 @@ class OnlyCatApiClient:
         return await self._socket.call(event, data)
 
     async def on_any_event(self, event: str, *args: Any) -> None:
-        """Handle any event."""
+        """Handle any event for debugging."""
         _LOGGER.debug("Received event: %s with args: %s", event, args)
 
     async def wait(self) -> None:
+        """Wait until client is disconnected."""
         await self._socket.wait()

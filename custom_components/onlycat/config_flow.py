@@ -2,14 +2,13 @@
 
 from __future__ import annotations
 
+import logging
+
 import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.const import CONF_ACCESS_TOKEN
 from homeassistant.helpers import selector
 from homeassistant.helpers.aiohttp_client import async_create_clientsession
-import logging
-
-_LOGGER = logging.getLogger(__name__)
 
 from .api import (
     OnlyCatApiClient,
@@ -17,8 +16,9 @@ from .api import (
     OnlyCatApiClientCommunicationError,
     OnlyCatApiClientError,
 )
-from .data import OnlyCatData
 from .const import DOMAIN, LOGGER
+
+_LOGGER = logging.getLogger(__name__)
 
 
 class OnlyCatFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
@@ -37,16 +37,18 @@ class OnlyCatFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 _LOGGER.debug("Initializing API client")
                 client = OnlyCatApiClient(
                     user_input[CONF_ACCESS_TOKEN],
-                    session=async_create_clientsession(self.hass)
+                    session=async_create_clientsession(self.hass),
                 )
                 user_id = None
-                async def on_userUpdate(data: any) -> None:
+
+                async def on_user_update(data: any) -> None:
                     nonlocal user_id
                     if data is not None and "id" in data:
                         user_id = str(data["id"])
-                client.add_event_listener("userUpdate", on_userUpdate)
+
+                client.add_event_listener("userUpdate", on_user_update)
                 await client.connect()
-                devices = await client.send_message("getDevices", { "subscribe": False})
+                devices = await client.send_message("getDevices", {"subscribe": False})
                 await client.disconnect()
             except OnlyCatApiClientAuthenticationError as exception:
                 LOGGER.warning(exception)
@@ -61,7 +63,7 @@ class OnlyCatFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 _LOGGER.debug("Creating entry with id %s", user_id)
                 await self.async_set_unique_id(unique_id=user_id)
                 self._abort_if_unique_id_configured()
-                return_data = dict()
+                return_data = {}
                 return_data["devices"] = devices
                 return_data["user_id"] = user_id
                 return_data["token"] = user_input[CONF_ACCESS_TOKEN]
@@ -70,14 +72,15 @@ class OnlyCatFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                     data=return_data,
                 )
 
-
         return self.async_show_form(
             step_id="user",
             data_schema=vol.Schema(
                 {
                     vol.Required(
                         CONF_ACCESS_TOKEN,
-                        default=(user_input or {}).get(CONF_ACCESS_TOKEN, vol.UNDEFINED),
+                        default=(user_input or {}).get(
+                            CONF_ACCESS_TOKEN, vol.UNDEFINED
+                        ),
                     ): selector.TextSelector(
                         selector.TextSelectorConfig(
                             type=selector.TextSelectorType.PASSWORD,

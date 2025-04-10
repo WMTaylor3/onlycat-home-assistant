@@ -4,25 +4,21 @@ Custom integration to integrate OnlyCat with Home Assistant.
 For more details about this integration, please refer to
 https://github.com/OnlyCatAI/onlycat-home-assistant
 """
+
 from __future__ import annotations
 
-from datetime import timedelta
 from typing import TYPE_CHECKING
 
-from homeassistant.const import Platform, CONF_ACCESS_TOKEN
+from homeassistant.const import Platform
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .api import OnlyCatApiClient
-from .const import DOMAIN, LOGGER
-from .data import OnlyCatData
+from .data import OnlyCatConfigEntry, OnlyCatData
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
-    from .data import OnlyCatConfigEntry
 
-PLATFORMS: list[Platform] = [
-    Platform.BINARY_SENSOR
-]
+PLATFORMS: list[Platform] = [Platform.BINARY_SENSOR]
 
 
 # https://developers.home-assistant.io/docs/config_entries_index/#setting-up-an-entry
@@ -37,7 +33,6 @@ async def async_setup_entry(
             session=async_get_clientsession(hass),
         )
     )
-    # TODO: Implement device registry to add multiple devices
     await entry.runtime_data.client.connect()
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     entry.async_on_unload(entry.add_update_listener(async_reload_entry))
