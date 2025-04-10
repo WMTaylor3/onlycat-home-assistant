@@ -56,9 +56,6 @@ class OnlyCatApiClient:
             logger=True,
             ssl_verify=False,
         )
-        self._socket.on("connect", self.on_connect)
-        self._socket.on("disconnect", self.on_disconnect)
-        self._socket.on("userUpdate", self.on_user_update)
         self._socket.on("*", self.on_any_event)
 
     async def connect(self) -> None:
