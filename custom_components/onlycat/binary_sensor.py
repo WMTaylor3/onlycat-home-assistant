@@ -62,7 +62,7 @@ class OnlyCatConnectionSensor(BinarySensorEntity):
     _attr_should_poll = False
     _attr_device_class = BinarySensorDeviceClass.CONNECTIVITY
     entity_category = EntityCategory.DIAGNOSTIC
-    _attr_translation_key = "OnlyCatDeviceSensor"
+    _attr_translation_key = "onlycat_connection_sensor"
 
     @property
     def device_info(self) -> DeviceInfo:

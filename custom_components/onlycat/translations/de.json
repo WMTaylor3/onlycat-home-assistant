@@ -19,7 +19,7 @@
     },
     "entity": {
         "binary_sensor": {
-            "OnlyCatConnectionSensor": {
+            "onlycat_connection_sensor": {
                 "name": "Erreichbarkeit"
             }
         }
