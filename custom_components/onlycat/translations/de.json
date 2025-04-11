@@ -1,0 +1,27 @@
+{
+    "config": {
+        "step": {
+            "user": {
+                "description": "Token für die OnlyCat API. In der OnlyCat App zu finden.",
+                "data": {
+                    "token": "OnlyCat Device Token"
+                }
+            }
+        },
+        "error": {
+            "auth": "Token falsch.",
+            "connection": "Konnte nicht mit der API verbinden.",
+            "unknown": "Unbekannter Fehler."
+        },
+        "abort": {
+            "already_configured": "Diese Entität ist bereits konfiguriert."
+        }
+    },
+    "entity": {
+        "binary_sensor": {
+            "onlycat_connection_sensor": {
+                "name": "Erreichbarkeit"
+            }
+        }
+    }
+}

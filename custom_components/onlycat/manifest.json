@@ -1,0 +1,12 @@
+{
+  "domain": "onlycat",
+  "name": "OnlyCat",
+  "codeowners": [
+    "@OnlyCatAI"
+  ],
+  "config_flow": true,
+  "documentation": "https://github.com/OnlyCatAI/onlycat-home-assistant",
+  "iot_class": "cloud_push",
+  "issue_tracker": "https://github.com/OnlyCatAI/onlycat-home-assistant/issues",
+  "version": "0.1.0"
+}
