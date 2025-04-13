@@ -53,7 +53,6 @@ class OnlyCatApiClient:
             reconnection_attempts=10,
             reconnection_delay=10,
             reconnection_delay_max=10,
-            logger=True,
             ssl_verify=False,
         )
         self._socket.on("*", self.on_any_event)
@@ -63,7 +62,6 @@ class OnlyCatApiClient:
         if self._socket.connected:
             return
         _LOGGER.debug("Connecting to API")
-
         await self._socket.connect(
             ONLYCAT_URL,
             transports=["websocket"],
