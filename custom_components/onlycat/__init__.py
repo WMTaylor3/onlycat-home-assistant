@@ -18,7 +18,7 @@ from .data import OnlyCatConfigEntry, OnlyCatData
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
 
-PLATFORMS: list[Platform] = [Platform.BINARY_SENSOR]
+PLATFORMS: list[Platform] = [Platform.BINARY_SENSOR, Platform.SELECT]
 
 
 # https://developers.home-assistant.io/docs/config_entries_index/#setting-up-an-entry
@@ -34,6 +34,12 @@ async def async_setup_entry(
         )
     )
     await entry.runtime_data.client.connect()
+    for device in entry.data["devices"]:
+        info = await entry.runtime_data.client.send_message(
+            "getDevice", {"deviceId": device["deviceId"], "subscribe": True}
+        )
+        device.update(info)
+
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     entry.async_on_unload(entry.add_update_listener(async_reload_entry))
     return True

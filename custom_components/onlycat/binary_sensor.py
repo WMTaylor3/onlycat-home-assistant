@@ -39,19 +39,13 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up the sensor platform."""
-    devices = []
-    for device in entry.data["devices"]:
-        info = await entry.runtime_data.client.send_message(
-            "getDevice", {"deviceId": device["deviceId"], "subscribe": True}
-        )
-        devices.append(device | info)
     async_add_entities(
         OnlyCatConnectionSensor(
             device=device,
             entity_description=ENTITY_DESCRIPTION,
             api_client=entry.runtime_data.client,
         )
-        for device in devices
+        for device in entry.data["devices"]
     )
 
 
@@ -80,17 +74,20 @@ class OnlyCatConnectionSensor(BinarySensorEntity):
         api_client: OnlyCatApiClient,
     ) -> None:
         """Initialize the sensor class."""
-        self._attr_name = None
         self.entity_description = entity_description
         self._state = None
         self._attr_raw_data = None
         self.device = device
-        self._attr_unique_id = device["deviceId"] + "_connectivity"
+        self._attr_name = "Connectivity"
+        self._attr_unique_id = (
+            device["deviceId"].replace("-", "_").lower() + "_connectivity"
+        )
+        self.entity_id = "binary_sensor." + self._attr_unique_id
         api_client.add_event_listener("deviceUpdate", self.on_device_update)
 
     async def on_device_update(self, data: dict) -> None:
         """Handle device update event."""
-        _LOGGER.debug("Device update event received: %s", data)
+        _LOGGER.debug("Device update event received for binary sensor: %s", data)
         self._attr_raw_data = str(data)
         self.async_write_ha_state()
 
