@@ -38,6 +38,11 @@ async def async_setup_entry(
         info = await entry.runtime_data.client.send_message(
             "getDevice", {"deviceId": device["deviceId"], "subscribe": True}
         )
+        async def refresh_subscriptions() -> None:
+            await entry.runtime_data.client.send_message(
+                "getDevice", {"deviceId": device["deviceId"], "subscribe": True}
+            )
+        entry.runtime_data.client.add_event_listener("connect", refresh_subscriptions)
         device.update(info)
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
