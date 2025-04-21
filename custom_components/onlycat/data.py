@@ -21,3 +21,4 @@ class OnlyCatData:
     """Data for the OnlyCat integration."""
 
     client: OnlyCatApiClient
+    devices: list

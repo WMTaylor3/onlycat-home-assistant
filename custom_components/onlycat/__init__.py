@@ -31,20 +31,23 @@ async def async_setup_entry(
         client=OnlyCatApiClient(
             token=entry.data["token"],
             session=async_get_clientsession(hass),
-        )
+        ),
+        devices=[]
     )
     await entry.runtime_data.client.connect()
     for device in entry.data["devices"]:
         info = await entry.runtime_data.client.send_message(
             "getDevice", {"deviceId": device["deviceId"], "subscribe": True}
         )
-        async def refresh_subscriptions() -> None:
-            await entry.runtime_data.client.send_message(
-                "getDevice", {"deviceId": device["deviceId"], "subscribe": True}
-            )
-        entry.runtime_data.client.add_event_listener("connect", refresh_subscriptions)
         device.update(info)
-
+    entry.runtime_data.devices = [
+        device["deviceId"] for device in entry.data["devices"]]
+    async def refresh_subscriptions() -> None:
+        for device in entry.runtime_data.devices:
+            await entry.runtime_data.client.send_message(
+                "getDevice", {"deviceId": device, "subscribe": True}
+            )
+    entry.runtime_data.client.add_event_listener("connect", refresh_subscriptions)
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     entry.async_on_unload(entry.add_update_listener(async_reload_entry))
     return True

@@ -57,7 +57,7 @@ class OnlyCatApiClient:
         )
         self._socket.on("*", self.on_any_event)
         self._socket.on("connect", self.on_connected)
-        
+
 
     async def connect(self) -> None:
         """Connect to wesocket client."""
@@ -100,4 +100,3 @@ class OnlyCatApiClient:
     async def on_connected(self) -> None:
         """Handle connected event."""
         _LOGGER.debug("(Re)connected to API")
-        
