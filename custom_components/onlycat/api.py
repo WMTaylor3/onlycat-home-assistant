@@ -50,12 +50,13 @@ class OnlyCatApiClient:
         self._socket = socket or socketio.AsyncClient(
             http_session=self._session,
             reconnection=True,
-            reconnection_attempts=10,
+            reconnection_attempts=0,
             reconnection_delay=10,
             reconnection_delay_max=10,
             ssl_verify=False,
         )
         self._socket.on("*", self.on_any_event)
+        self._socket.on("connect", self.on_connected)
 
     async def connect(self) -> None:
         """Connect to wesocket client."""
@@ -94,3 +95,7 @@ class OnlyCatApiClient:
     async def wait(self) -> None:
         """Wait until client is disconnected."""
         await self._socket.wait()
+
+    async def on_connected(self) -> None:
+        """Handle connected event."""
+        _LOGGER.debug("(Re)connected to API")
