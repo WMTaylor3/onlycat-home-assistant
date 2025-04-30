@@ -22,6 +22,7 @@ if TYPE_CHECKING:
 PLATFORMS: list[Platform] = [Platform.BINARY_SENSOR, Platform.SELECT]
 _LOGGER = logging.getLogger(__name__)
 
+
 # https://developers.home-assistant.io/docs/config_entries_index/#setting-up-an-entry
 async def async_setup_entry(
     hass: HomeAssistant,
