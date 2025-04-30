@@ -7,6 +7,7 @@ https://github.com/OnlyCatAI/onlycat-home-assistant
 
 from __future__ import annotations
 
+import logging
 from typing import TYPE_CHECKING
 
 from homeassistant.const import Platform
@@ -19,7 +20,7 @@ if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
 
 PLATFORMS: list[Platform] = [Platform.BINARY_SENSOR, Platform.SELECT]
-
+_LOGGER = logging.getLogger(__name__)
 
 # https://developers.home-assistant.io/docs/config_entries_index/#setting-up-an-entry
 async def async_setup_entry(
@@ -44,13 +45,15 @@ async def async_setup_entry(
         device["deviceId"] for device in entry.data["devices"]
     ]
 
-    async def refresh_subscriptions() -> None:
+    async def refresh_subscriptions(args: dict | None) -> None:
+        _LOGGER.debug("Refreshing subscriptions, caused by event: %s", args)
         for device in entry.runtime_data.devices:
             await entry.runtime_data.client.send_message(
                 "getDevice", {"deviceId": device, "subscribe": True}
             )
 
     entry.runtime_data.client.add_event_listener("connect", refresh_subscriptions)
+    entry.runtime_data.client.add_event_listener("userUpdate", refresh_subscriptions)
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     entry.async_on_unload(entry.add_update_listener(async_reload_entry))
     return True
