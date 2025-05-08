@@ -18,11 +18,8 @@ from .const import DOMAIN
 _LOGGER = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
-    from homeassistant.core import HomeAssistant
-    from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
     from .api import OnlyCatApiClient
-    from .data import OnlyCatConfigEntry
 
 
 ENTITY_DESCRIPTION = BinarySensorEntityDescription(
