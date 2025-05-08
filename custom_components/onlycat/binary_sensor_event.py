@@ -18,7 +18,6 @@ from .const import DOMAIN
 _LOGGER = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
-
     from .api import OnlyCatApiClient
 
 
