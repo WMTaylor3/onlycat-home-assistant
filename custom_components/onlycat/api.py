@@ -85,7 +85,7 @@ class OnlyCatApiClient:
 
     async def send_message(self, event: str, data: any) -> Any | None:
         """Send a message to the API."""
-        _LOGGER.debug("Sending message to API: %s", data)
+        _LOGGER.debug("Sending %s message to API: %s", event, data)
         return await self._socket.call(event, data)
 
     async def on_any_event(self, event: str, *args: Any) -> None:
