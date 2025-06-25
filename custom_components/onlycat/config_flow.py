@@ -47,9 +47,7 @@ class OnlyCatFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                         user_id = str(data["id"])
 
                 client.add_event_listener("userUpdate", on_user_update)
-                await client.connect()
-                devices = await client.send_message("getDevices", {"subscribe": False})
-                await client.disconnect()
+                await self._validate_connection(client)
             except OnlyCatApiClientAuthenticationError as exception:
                 LOGGER.warning(exception)
                 _errors["base"] = "auth"
@@ -63,10 +61,10 @@ class OnlyCatFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 _LOGGER.debug("Creating entry with id %s", user_id)
                 await self.async_set_unique_id(unique_id=user_id)
                 self._abort_if_unique_id_configured()
-                return_data = {}
-                return_data["devices"] = devices
-                return_data["user_id"] = user_id
-                return_data["token"] = user_input[CONF_ACCESS_TOKEN]
+                return_data = {
+                    "user_id": user_id,
+                    "token": user_input[CONF_ACCESS_TOKEN],
+                }
                 return self.async_create_entry(
                     title=user_id,
                     data=return_data,
@@ -90,3 +88,9 @@ class OnlyCatFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             ),
             errors=_errors,
         )
+
+    async def _validate_connection(self, client: OnlyCatApiClient) -> None:
+        """Validate connection."""
+        await client.connect()
+        await client.send_message("getDevices", {"subscribe": False})
+        await client.disconnect()

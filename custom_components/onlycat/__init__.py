@@ -8,13 +8,18 @@ https://github.com/OnlyCatAI/onlycat-home-assistant
 from __future__ import annotations
 
 import logging
+from datetime import datetime
 from typing import TYPE_CHECKING
 
 from homeassistant.const import Platform
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .api import OnlyCatApiClient
-from .data import OnlyCatConfigEntry, OnlyCatData
+from .data.__init__ import OnlyCatConfigEntry, OnlyCatData
+from .data.device import Device
+from .data.event import Event
+from .data.pet import Pet
+from .data.policy import DeviceTransitPolicy
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
@@ -35,25 +40,21 @@ async def async_setup_entry(
             session=async_get_clientsession(hass),
         ),
         devices=[],
+        pets=[],
     )
     await entry.runtime_data.client.connect()
-    for device in entry.data["devices"]:
-        info = await entry.runtime_data.client.send_message(
-            "getDevice", {"deviceId": device["deviceId"], "subscribe": True}
-        )
-        device.update(info)
-    entry.runtime_data.devices = [
-        device["deviceId"] for device in entry.data["devices"]
-    ]
+
+    await _initialize_devices(entry)
+    await _initialize_pets(entry)
 
     async def refresh_subscriptions(args: dict | None) -> None:
         _LOGGER.debug("Refreshing subscriptions, caused by event: %s", args)
         for device in entry.runtime_data.devices:
             await entry.runtime_data.client.send_message(
-                "getDevice", {"deviceId": device, "subscribe": True}
+                "getDevice", {"deviceId": device.device_id, "subscribe": True}
             )
             await entry.runtime_data.client.send_message(
-                "getDeviceEvents", {"deviceId": device, "subscribe": True}
+                "getDeviceEvents", {"deviceId": device.device_id, "subscribe": True}
             )
 
     await refresh_subscriptions(None)
@@ -62,6 +63,63 @@ async def async_setup_entry(
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     entry.async_on_unload(entry.add_update_listener(async_reload_entry))
     return True
+
+
+async def _initialize_devices(entry: OnlyCatConfigEntry) -> None:
+    device_ids = (
+        device["deviceId"]
+        for device in await entry.runtime_data.client.send_message(
+            "getDevices", {"subscribe": True}
+        )
+    )
+    for device_id in device_ids:
+        api_device = await entry.runtime_data.client.send_message(
+            "getDevice", {"deviceId": device_id, "subscribe": True}
+        )
+        entry.runtime_data.devices.append(Device.from_api_response(api_device))
+
+    for device in entry.runtime_data.devices:
+        transit_policy = DeviceTransitPolicy.from_api_response(
+            await entry.runtime_data.client.send_message(
+                "getDeviceTransitPolicy",
+                {"deviceTransitPolicyId": device.device_transit_policy_id},
+            )
+        )
+        transit_policy.device = device
+        device.device_transit_policy = transit_policy
+
+
+async def _initialize_pets(entry: OnlyCatConfigEntry) -> None:
+    for device in entry.runtime_data.devices:
+        events = [
+            Event.from_api_response(event)
+            for event in await entry.runtime_data.client.send_message(
+                "getDeviceEvents", {"deviceId": device.device_id}
+            )
+        ]
+        rfids = await entry.runtime_data.client.send_message(
+            "getLastSeenRfidCodesByDevice", {"deviceId": device.device_id}
+        )
+        for rfid in rfids:
+            rfid_code = rfid["rfidCode"]
+            last_seen = datetime.fromisoformat(rfid["timestamp"])
+            rfid_profile = await entry.runtime_data.client.send_message(
+                "getRfidProfile", {"rfidCode": rfid_code}
+            )
+            label = rfid_profile.get("label")
+            pet = Pet(device, rfid_code, last_seen, label=label)
+            _LOGGER.debug(
+                "Found Pet %s for device %s",
+                label if label else rfid_code,
+                device.device_id,
+            )
+            entry.runtime_data.pets.append(pet)
+
+            # Get last seen event to determine current presence state
+            for event in events:
+                if event.rfid_codes and pet.rfid_code in event.rfid_codes:
+                    pet.last_seen_event = event
+                    break
 
 
 async def async_unload_entry(

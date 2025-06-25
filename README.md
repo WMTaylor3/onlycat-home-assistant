@@ -6,16 +6,19 @@ HomeAssistant integration for OnlyCat flaps.
 1. Discover all flaps associated with one account
 2. Show flap connection status
 3. Show and allow to select active door policy (policies have to be created/modified via app)
-4. Show event activity (timestamp, rfids)
+4. Show event activity (timestamp, RFIDs, event classification)
+5. Show pet presence
 
 ## How to install
 1. Install HACS
-2. Add this respository to HACS via "Custom Repostiories"
+2. Add this repository to HACS via "Custom Repositories"
 3. Install OnlyCat Integration
 
 ## Development
 
-1. Install pip requirements via ´pip install -r requirements.txt´
-2. Run ´./scripts/develop´ to start up a HA instance 
+1. Install pip requirements via `pip install -r requirements.txt`
+2. Run a HA instance:
+   1. Directly by running `./scripts/develop`, or
+   2. In Docker by running `docker run --volume ./config:/config --volume ./custom_components:/config/custom_components -p 8123:8123 "ghcr.io/home-assistant/home-assistant:stable"`
 3. Add the integration from the HA "Devices & services" ui.
 
