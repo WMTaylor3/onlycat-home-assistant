@@ -9,9 +9,13 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
 
-    from .api import OnlyCatApiClient
+    from custom_components.onlycat.api import OnlyCatApiClient
+
+    from .device import Device
+    from .pet import Pet
 
 _LOGGER = logging.getLogger(__name__)
+
 
 type OnlyCatConfigEntry = ConfigEntry[OnlyCatData]
 
@@ -21,4 +25,5 @@ class OnlyCatData:
     """Data for the OnlyCat integration."""
 
     client: OnlyCatApiClient
-    devices: list
+    devices: list[Device]
+    pets: list[Pet]

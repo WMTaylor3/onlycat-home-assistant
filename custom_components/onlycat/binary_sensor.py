@@ -6,12 +6,13 @@ from typing import TYPE_CHECKING
 
 from .binary_sensor_connectivity import OnlyCatConnectionSensor
 from .binary_sensor_event import OnlyCatEventSensor
+from .binary_sensor_pet import OnlyCatPetSensor
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
     from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-    from .data import OnlyCatConfigEntry
+    from .data.__init__ import OnlyCatConfigEntry
 
 
 async def async_setup_entry(
@@ -22,7 +23,7 @@ async def async_setup_entry(
     """Set up the sensor platform."""
     async_add_entities(
         sensor
-        for device in entry.data["devices"]
+        for device in entry.runtime_data.devices
         for sensor in (
             OnlyCatEventSensor(
                 device=device,
@@ -34,3 +35,14 @@ async def async_setup_entry(
             ),
         )
     )
+    if entry.runtime_data.pets:
+        async_add_entities(
+            sensor
+            for pet in entry.runtime_data.pets
+            for sensor in (
+                OnlyCatPetSensor(
+                    pet=pet,
+                    api_client=entry.runtime_data.client,
+                ),
+            )
+        )

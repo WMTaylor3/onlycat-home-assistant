@@ -10,16 +10,16 @@ from homeassistant.components.binary_sensor import (
     BinarySensorEntity,
     BinarySensorEntityDescription,
 )
-from homeassistant.const import EntityCategory
 from homeassistant.helpers.device_registry import DeviceInfo
 
 from .const import DOMAIN
+from .data.event import Event, EventUpdate
 
 _LOGGER = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
     from .api import OnlyCatApiClient
-
+    from .data.device import Device
 
 ENTITY_DESCRIPTION = BinarySensorEntityDescription(
     key="OnlyCat",
@@ -34,21 +34,20 @@ class OnlyCatEventSensor(BinarySensorEntity):
     _attr_has_entity_name = True
     _attr_should_poll = False
     _attr_device_class = BinarySensorDeviceClass.MOTION
-    entity_category = EntityCategory.DIAGNOSTIC
     _attr_translation_key = "onlycat_event_sensor"
 
     @property
     def device_info(self) -> DeviceInfo:
         """Return device info to map to a device."""
         return DeviceInfo(
-            identifiers={(DOMAIN, self.device["deviceId"])},
-            name=self.device["description"],
-            serial_number=self.device["deviceId"],
+            identifiers={(DOMAIN, self.device.device_id)},
+            name=self.device.description,
+            serial_number=self.device.device_id,
         )
 
     def __init__(
         self,
-        device: dict,
+        device: Device,
         api_client: OnlyCatApiClient,
     ) -> None:
         """Initialize the sensor class."""
@@ -57,7 +56,7 @@ class OnlyCatEventSensor(BinarySensorEntity):
         self._attr_raw_data = None
         self.device = device
         self._attr_name = "Flap event"
-        self._attr_unique_id = device["deviceId"].replace("-", "_").lower() + "_event"
+        self._attr_unique_id = device.device_id.replace("-", "_").lower() + "_event"
         self._api_client = api_client
         self.entity_id = "sensor." + self._attr_unique_id
         api_client.add_event_listener("deviceEventUpdate", self.on_device_event_update)
@@ -65,22 +64,36 @@ class OnlyCatEventSensor(BinarySensorEntity):
 
     async def on_event_update(self, data: dict) -> None:
         """Handle event update event."""
-        _LOGGER.debug("Event update event received for sensor: %s", data)
-        if (self._attr_extra_state_attributes["eventId"]) != data["eventId"]:
+        if data["deviceId"] != self.device.device_id:
+            return
+
+        _LOGGER.debug("Event update event received for event sensor: %s", data)
+
+        event_update = EventUpdate.from_api_response(data)
+
+        if (self._attr_extra_state_attributes["eventId"]) != event_update.event_id:
             _LOGGER.debug("Event ID has changed, updating state.")
             self._state = True
-        else:
-            if "frameCount" in data["body"] and data["body"]["frameCount"] > 0:
+        elif event_update.body:
+            if event_update.body.frame_count:
                 self._state = False
-            if "rfidCodes" in data["body"] and len(data["body"]["rfidCodes"]) > 0:
-                self._attr_extra_state_attributes["rfidCodes"] = data["body"][
-                    "rfidCodes"
-                ]
+            if event_update.body.event_classification:
+                self._attr_extra_state_attributes["eventClassification"] = (
+                    event_update.body.event_classification.name
+                )
+            if event_update.body.rfid_codes:
+                self._attr_extra_state_attributes["rfidCodes"] = (
+                    event_update.body.rfid_codes
+                )
         self.async_write_ha_state()
 
     async def on_device_event_update(self, data: dict) -> None:
         """Handle device event update event."""
-        _LOGGER.debug("Device event update event received for binary sensor: %s", data)
+        if data["deviceId"] != self.device.device_id:
+            return
+
+        _LOGGER.debug("Device event update event received for event sensor: %s", data)
+
         response = await self._api_client.send_message(
             "getEvent",
             {
@@ -90,12 +103,19 @@ class OnlyCatEventSensor(BinarySensorEntity):
             },
         )
         _LOGGER.debug("Response from getEvent: %s", response)
+        event = Event.from_api_response(response)
+
         self._state = True
         self._attr_extra_state_attributes = {
-            "eventId": response["eventId"],
-            "timestamp": response["timestamp"],
-            "eventTriggerSource": response["eventTriggerSource"],
+            "eventId": event.event_id,
+            "timestamp": event.timestamp,
+            "eventTriggerSource": event.event_trigger_source.name,
         }
+        if event.event_classification:
+            self._attr_extra_state_attributes["eventClassification"] = (
+                event.event_classification.name
+            )
+
         self.async_write_ha_state()
 
     @property
