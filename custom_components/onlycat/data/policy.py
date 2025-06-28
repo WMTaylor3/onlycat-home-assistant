@@ -267,7 +267,9 @@ class DeviceTransitPolicy:
 
         if self.transit_policy.rules:
             for rule in self.transit_policy.rules:
-                if not rule.criteria.matches(event, self.device.time_zone):
+                if not rule.criteria or not rule.criteria.matches(
+                    event, self.device.time_zone
+                ):
                     continue
                 result = (
                     PolicyResult.LOCKED if rule.action.lock else PolicyResult.UNLOCKED

@@ -76,6 +76,18 @@ class Device:
             device_transit_policy_id=api_device.get("deviceTransitPolicyId"),
         )
 
+    def update_from(self, updated_device: Device) -> None:
+        """Update the device with data from another Device instance."""
+        if updated_device is None:
+            return
+
+        self.connectivity = updated_device.connectivity or self.connectivity
+        self.description = updated_device.description or self.description
+        self.time_zone = updated_device.time_zone or self.time_zone
+        self.device_transit_policy_id = (
+            updated_device.device_transit_policy_id or self.device_transit_policy_id
+        )
+
 
 @dataclass
 class DeviceUpdate:
