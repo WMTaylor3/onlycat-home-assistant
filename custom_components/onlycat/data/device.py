@@ -4,13 +4,15 @@ from __future__ import annotations
 
 import logging
 import zoneinfo
-from dataclasses import dataclass
+from dataclasses import dataclass, fields
 from datetime import UTC, datetime, tzinfo
 from typing import TYPE_CHECKING
 
+from .pet import PolicyResult
 from .type import Type
 
 if TYPE_CHECKING:
+    from .event import Event
     from .policy import DeviceTransitPolicy
 
 _LOGGER = logging.getLogger(__name__)
@@ -81,12 +83,30 @@ class Device:
         if updated_device is None:
             return
 
-        self.connectivity = updated_device.connectivity or self.connectivity
-        self.description = updated_device.description or self.description
-        self.time_zone = updated_device.time_zone or self.time_zone
-        self.device_transit_policy_id = (
-            updated_device.device_transit_policy_id or self.device_transit_policy_id
-        )
+        for field in fields(self):
+            new_value = getattr(updated_device, field.name, None)
+            if new_value is not None:
+                setattr(self, field.name, new_value)
+
+    def is_unlocked_in_idle_state(self) -> bool | None:
+        """Check if the device is unlocked in idle state."""
+        if (
+            not self.device_transit_policy
+            or not self.device_transit_policy.transit_policy
+        ):
+            _LOGGER.debug("Unable to determine lock state, no transit policy set.")
+            return None
+
+        return not self.device_transit_policy.transit_policy.idle_lock
+
+    def is_unlocked_by_event(self, event: Event) -> bool | None:
+        """Check if the device is unlocked by the given event."""
+        policy_result = self.device_transit_policy.determine_policy_result(event)
+        if policy_result == PolicyResult.UNLOCKED:
+            return True
+        if policy_result == PolicyResult.LOCKED:
+            return False
+        return None
 
 
 @dataclass

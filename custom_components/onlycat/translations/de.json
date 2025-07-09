@@ -21,6 +21,25 @@
         "binary_sensor": {
             "onlycat_connection_sensor": {
                 "name": "Erreichbarkeit"
+            },
+            "onlycat_event_sensor": {
+                "name": "Klappenbewegung"
+            },
+            "onlycat_contraband_sensor": {
+                "name": "Beuteerkennung"
+            },
+            "onlycat_lock_sensor": {
+                "name": "Verriegelung"
+            }
+        },
+        "device_tracker": {
+            "onlycat_pet_tracker": {
+                "name": "{pet_name}s Anwesenheit"
+            }
+        },
+        "select": {
+            "onlycat_policy_select": {
+                "name": "Zugangsrichtlinie"
             }
         }
     }

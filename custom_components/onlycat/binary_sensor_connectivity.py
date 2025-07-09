@@ -14,6 +14,7 @@ from homeassistant.const import EntityCategory
 from homeassistant.helpers.device_registry import DeviceInfo
 
 from .const import DOMAIN
+from .data.device import DeviceUpdate
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -23,8 +24,10 @@ if TYPE_CHECKING:
 
 ENTITY_DESCRIPTION = BinarySensorEntityDescription(
     key="OnlyCat",
-    name="OnlyCat Flap",
+    name="Connectivity",
     device_class=BinarySensorDeviceClass.CONNECTIVITY,
+    entity_category=EntityCategory.DIAGNOSTIC,
+    translation_key="onlycat_connection_sensor",
 )
 
 
@@ -33,9 +36,6 @@ class OnlyCatConnectionSensor(BinarySensorEntity):
 
     _attr_has_entity_name = True
     _attr_should_poll = False
-    _attr_device_class = BinarySensorDeviceClass.CONNECTIVITY
-    entity_category = EntityCategory.DIAGNOSTIC
-    _attr_translation_key = "onlycat_connection_sensor"
 
     @property
     def device_info(self) -> DeviceInfo:
@@ -53,14 +53,14 @@ class OnlyCatConnectionSensor(BinarySensorEntity):
     ) -> None:
         """Initialize the sensor class."""
         self.entity_description = ENTITY_DESCRIPTION
-        self._state = None
+        self._attr_is_on = device.connectivity.connected
         self._attr_raw_data = None
         self.device = device
-        self._attr_name = "Connectivity"
         self._attr_unique_id = (
             device.device_id.replace("-", "_").lower() + "_connectivity"
         )
         self.entity_id = "binary_sensor." + self._attr_unique_id
+
         api_client.add_event_listener("deviceUpdate", self.on_device_update)
 
     async def on_device_update(self, data: dict) -> None:
@@ -68,12 +68,9 @@ class OnlyCatConnectionSensor(BinarySensorEntity):
         if data["deviceId"] != self.device.device_id:
             return
 
-        _LOGGER.debug("Device update event received for connectivity sensor: %s", data)
+        device_update = DeviceUpdate.from_api_response(data)
 
         self._attr_raw_data = str(data)
+        if device_update.body.connectivity:
+            self._attr_is_on = device_update.body.connectivity.connected
         self.async_write_ha_state()
-
-    @property
-    def is_on(self) -> bool:
-        """Return if device is connected."""
-        return self.device.connectivity.connected

@@ -73,7 +73,6 @@ class OnlyCatApiClient:
             headers={"platform": "home-assistant", "device": "onlycat-hass"},
             auth={"token": self._token},
         )
-        return
 
     async def disconnect(self) -> None:
         """Disconnect websocket client."""

@@ -21,6 +21,25 @@
         "binary_sensor": {
             "onlycat_connection_sensor": {
                 "name": "Connectivity"
+            },
+            "onlycat_event_sensor": {
+                "name": "Flap event"
+            },
+            "onlycat_contraband_sensor": {
+                "name": "Contraband detection"
+            },
+            "onlycat_lock_sensor": {
+                "name": "Lock state"
+            }
+        },
+        "device_tracker": {
+            "onlycat_pet_tracker": {
+                "name": "{pet_name}'s presence"
+            }
+        },
+        "select": {
+            "onlycat_policy_select": {
+                "name": "Door Policy"
             }
         }
     }

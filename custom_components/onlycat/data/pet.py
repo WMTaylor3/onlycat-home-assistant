@@ -31,6 +31,18 @@ class Pet:
     def is_present(self, event: Event) -> bool | None:
         """Determine whether a pet is present based on an event."""
         pet_name = self.label if self.label else self.rfid_code
+
+        if event.rfid_codes is None or self.rfid_code not in event.rfid_codes:
+            return None
+
+        _LOGGER.debug(
+            "New %s event for %s, determining new state",
+            event.event_trigger_source.name
+            if event.event_trigger_source
+            else "UNKNOWN",
+            pet_name,
+        )
+
         if not self.device.device_transit_policy:
             _LOGGER.debug(
                 "No transit policy set, unable to determine policy result for event %s",
@@ -41,7 +53,6 @@ class Pet:
             EventTriggerSource.OUTDOOR_MOTION,
             EventTriggerSource.INDOOR_MOTION,
         ):
-            _LOGGER.debug("Event was not triggered by motion, ignoring event.")
             return None
 
         policy_result = self.device.device_transit_policy.determine_policy_result(event)
@@ -54,14 +65,12 @@ class Pet:
                 pet_name,
             )
             return None
-        if event.event_trigger_source == EventTriggerSource.OUTDOOR_MOTION:
-            _LOGGER.debug(
-                "Transit allowed for outdoor motion, assuming %s is present.",
-                pet_name,
-            )
-            return True
+
+        result = event.event_trigger_source == EventTriggerSource.OUTDOOR_MOTION
         _LOGGER.debug(
-            "Transit allowed for indoor motion, assuming %s is not present.",
+            "Transit was allowed, assuming %s is %s",
             pet_name,
+            "present" if result else "not present",
         )
-        return False
+
+        return result
