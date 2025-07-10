@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass
+from dataclasses import dataclass, fields
 from datetime import datetime
 from enum import Enum
 
@@ -49,16 +49,16 @@ class EventClassification(Enum):
 class Event:
     """Data representing an OnlyCat flap event."""
 
-    global_id: int
-    device_id: str
-    event_id: int
-    timestamp: datetime
-    frame_count: int
-    event_trigger_source: EventTriggerSource
-    event_classification: EventClassification
-    poster_frame_index: int
-    access_token: str
-    rfid_codes: list[str]
+    global_id: int | None = None
+    device_id: str | None = None
+    event_id: int | None = None
+    timestamp: datetime | None = None
+    frame_count: int | None = None
+    event_trigger_source: EventTriggerSource | None = None
+    event_classification: EventClassification | None = None
+    poster_frame_index: int | None = None
+    access_token: str | None = None
+    rfid_codes: list[str] | None = None
 
     @classmethod
     def from_api_response(cls, api_event: dict) -> Event | None:
@@ -75,16 +75,26 @@ class Event:
             event_id=api_event.get("eventId"),
             timestamp=datetime.fromisoformat(timestamp) if timestamp else None,
             frame_count=api_event.get("frameCount"),
-            event_trigger_source=EventTriggerSource(trigger_source)
+            event_trigger_source=EventTriggerSource(int(trigger_source))
             if trigger_source
             else None,
-            event_classification=EventClassification(classification)
+            event_classification=EventClassification(int(classification))
             if classification
             else None,
             poster_frame_index=api_event.get("posterFrameIndex"),
             access_token=api_event.get("accessToken"),
             rfid_codes=api_event.get("rfidCodes"),
         )
+
+    def update_from(self, updated_event: Event) -> None:
+        """Update the event with data from another event instance."""
+        if updated_event is None:
+            return
+
+        for field in fields(self):
+            new_value = getattr(updated_event, field.name, None)
+            if new_value is not None:
+                setattr(self, field.name, new_value)
 
 
 @dataclass

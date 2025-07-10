@@ -27,8 +27,10 @@ if TYPE_CHECKING:
 
 ENTITY_DESCRIPTION = SelectEntityDescription(
     key="OnlyCat",
-    name="OnlyCat Door Policy",
+    name="Door Policy",
+    entity_category=EntityCategory.CONFIG,
     icon="mdi:home-clock",
+    translation_key="onlycat_policy_select",
 )
 
 
@@ -65,46 +67,7 @@ async def async_setup_entry(
 
 
 class OnlyCatPolicySelect(SelectEntity):
-    """
-    Door policy for the flap.
-
-    Fetched via ["getDeviceTransitPolicies",{"deviceId":"OC-XXXXXXXXXXX"}]
-    Example response:
-    [[{"deviceTransitPolicyId":0000,"deviceId":"OC-XXXXXXXXXXX","name":"Nachts"},
-        {"deviceTransitPolicyId":0000,"deviceId":"OC-XXXXXXXXXXX","name":"Offen"},
-        {"deviceTransitPolicyId":0000,"deviceId":"OC-XXXXXXXXXXX","name":"Nicht Minna"},
-        {"deviceTransitPolicyId":0000,"deviceId":"OC-XXXXXXXXXXX","name":"normal schedule"}
-    ]]
-
-    Fetching one policy:
-    ["getDeviceTransitPolicy",{"deviceTransitPolicyId":0000}]
-    Result:
-    [{"deviceTransitPolicyId":0000,
-        "deviceId":"OC-XXXXXXXXXXX",
-        "name":"Nachts",
-        "transitPolicy":{
-            "rules":[
-                {"action":{"lock":true},"criteria":{"eventTriggerSource":3,"eventClassification":[2,3]},"description":"Contraband Rule"},
-                {"action":{"lock":false},"enabled":true,"criteria":{"rfidCode":["000000000000003","000000000000001","000000000000002"],"eventTriggerSource":3},"description":"Entry Rule"}],
-            "idleLock":true,
-            "idleLockBattery":true
-        }
-    }]
-
-    Activating a policy:
-    ["activateDeviceTransitPolicy",{"deviceId":"OC-XXXXXXXXXXX","deviceTransitPolicyId":0000}]
-    Response:
-    [{"deviceTransitPolicyId":0000,
-        "deviceId":"OC-XXXXXXXXXXX",
-        "name":"normal schedule",
-        "transitPolicy":{
-            "rules":[
-                {"action":{"lock":false},"enabled":true,"criteria":{"rfidCode":["000000000000001","000000000000002","000000000000003"],"timeRange":"07:00-16:30","eventTriggerSource":2},"description":"Exit Rule"},
-                {"action":{"lock":true},"criteria":{"eventTriggerSource":3,"eventClassification":[2,3]},"description":"Contraband Rule"},
-                {"action":{"lock":false},"enabled":true,"criteria":{"rfidCode":["000000000000001","000000000000002","000000000000003"],"eventTriggerSource":3},"description":"Entry Rule"}],
-            "idleLock":true,
-            "idleLockBattery":true}}]
-    """  # noqa: E501
+    """Door policy for the flap."""
 
     _attr_has_entity_name = True
     _attr_should_poll = False
@@ -132,11 +95,10 @@ class OnlyCatPolicySelect(SelectEntity):
         self._state = None
         self._attr_raw_data = None
         self._api_client = api_client
-        self._attr_name = "Policy"
         self._attr_unique_id = device.device_id.replace("-", "_").lower() + "_policy"
         self.entity_id = "select." + self._attr_unique_id
         self._attr_options = [policy.name for policy in policies]
-        self.device = device
+        self.device: Device = device
         self._policies = policies
         self.set_current_policy(device.device_transit_policy_id)
         api_client.add_event_listener("deviceUpdate", self.on_device_update)

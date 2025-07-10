@@ -13,7 +13,7 @@ from homeassistant.components.binary_sensor import (
 from homeassistant.helpers.device_registry import DeviceInfo
 
 from .const import DOMAIN
-from .data.event import Event, EventUpdate
+from .data.event import Event, EventClassification, EventUpdate
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -23,13 +23,14 @@ if TYPE_CHECKING:
 
 ENTITY_DESCRIPTION = BinarySensorEntityDescription(
     key="OnlyCat",
-    name="Flap event",
-    device_class=BinarySensorDeviceClass.MOTION,
-    translation_key="onlycat_event_sensor",
+    name="Contraband",
+    device_class=BinarySensorDeviceClass.PROBLEM,
+    icon="mdi:rodent",
+    translation_key="onlycat_contraband_sensor",
 )
 
 
-class OnlyCatEventSensor(BinarySensorEntity):
+class OnlyCatContrabandSensor(BinarySensorEntity):
     """OnlyCat Sensor class."""
 
     _attr_has_entity_name = True
@@ -52,10 +53,12 @@ class OnlyCatEventSensor(BinarySensorEntity):
         """Initialize the sensor class."""
         self.entity_description = ENTITY_DESCRIPTION
         self._attr_is_on = False
-        self._attr_extra_state_attributes = {}
         self._attr_raw_data = None
         self.device: Device = device
-        self._attr_unique_id = device.device_id.replace("-", "_").lower() + "_event"
+        self._current_event: Event = Event()
+        self._attr_unique_id = (
+            device.device_id.replace("-", "_").lower() + "_contraband"
+        )
         self._api_client = api_client
         self.entity_id = "sensor." + self._attr_unique_id
 
@@ -67,27 +70,18 @@ class OnlyCatEventSensor(BinarySensorEntity):
         if data["deviceId"] != self.device.device_id:
             return
 
-        self.determine_new_state(EventUpdate.from_api_response(data).body)
+        self._current_event.update_from(EventUpdate.from_api_response(data).body)
+        self.determine_new_state(self._current_event)
         self.async_write_ha_state()
 
     def determine_new_state(self, event: Event) -> None:
         """Determine the new state of the sensor based on the event."""
-        if (self._attr_extra_state_attributes.get("eventId")) != event.event_id:
-            _LOGGER.debug("Event ID has changed, updating state.")
-            self._attr_is_on = True
-            self._attr_extra_state_attributes = {
-                "eventId": event.event_id,
-                "timestamp": event.timestamp,
-                "eventTriggerSource": event.event_trigger_source.name,
-            }
-        elif event.frame_count:
-            # Frame count is present, event is concluded
+        if not event:
+            return
+
+        if event.frame_count:
             self._attr_is_on = False
-            self._attr_extra_state_attributes = {}
-        else:
-            if event.event_classification:
-                self._attr_extra_state_attributes["eventClassification"] = (
-                    event.event_classification.name
-                )
-            if event.rfid_codes:
-                self._attr_extra_state_attributes["rfidCodes"] = event.rfid_codes
+            self._current_event = Event()
+        elif event.event_classification == EventClassification.CONTRABAND:
+            _LOGGER.debug("Contraband detected for event %s", event)
+            self._attr_is_on = True

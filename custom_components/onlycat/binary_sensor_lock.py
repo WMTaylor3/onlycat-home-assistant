@@ -23,13 +23,13 @@ if TYPE_CHECKING:
 
 ENTITY_DESCRIPTION = BinarySensorEntityDescription(
     key="OnlyCat",
-    name="Flap event",
-    device_class=BinarySensorDeviceClass.MOTION,
-    translation_key="onlycat_event_sensor",
+    name="Lock",
+    device_class=BinarySensorDeviceClass.LOCK,
+    translation_key="onlycat_lock_sensor",
 )
 
 
-class OnlyCatEventSensor(BinarySensorEntity):
+class OnlyCatLockSensor(BinarySensorEntity):
     """OnlyCat Sensor class."""
 
     _attr_has_entity_name = True
@@ -51,43 +51,41 @@ class OnlyCatEventSensor(BinarySensorEntity):
     ) -> None:
         """Initialize the sensor class."""
         self.entity_description = ENTITY_DESCRIPTION
-        self._attr_is_on = False
-        self._attr_extra_state_attributes = {}
-        self._attr_raw_data = None
         self.device: Device = device
-        self._attr_unique_id = device.device_id.replace("-", "_").lower() + "_event"
+        self._current_event: Event = Event()
+        self._attr_is_on = self.device.is_unlocked_in_idle_state()
+        self._attr_unique_id = device.device_id.replace("-", "_").lower() + "_lock"
         self._api_client = api_client
         self.entity_id = "sensor." + self._attr_unique_id
 
         api_client.add_event_listener("deviceEventUpdate", self.on_event_update)
         api_client.add_event_listener("eventUpdate", self.on_event_update)
+        api_client.add_event_listener("deviceUpdate", self.on_device_update)
 
     async def on_event_update(self, data: dict) -> None:
         """Handle event update event."""
         if data["deviceId"] != self.device.device_id:
             return
 
-        self.determine_new_state(EventUpdate.from_api_response(data).body)
+        self._current_event.update_from(EventUpdate.from_api_response(data).body)
+        self.determine_new_state(self._current_event)
+        self.async_write_ha_state()
+
+    async def on_device_update(self, data: dict) -> None:
+        """Handle device update event."""
+        if data["deviceId"] != self.device.device_id:
+            return
+
+        self._attr_is_on = self.device.is_unlocked_in_idle_state()
         self.async_write_ha_state()
 
     def determine_new_state(self, event: Event) -> None:
         """Determine the new state of the sensor based on the event."""
-        if (self._attr_extra_state_attributes.get("eventId")) != event.event_id:
-            _LOGGER.debug("Event ID has changed, updating state.")
-            self._attr_is_on = True
-            self._attr_extra_state_attributes = {
-                "eventId": event.event_id,
-                "timestamp": event.timestamp,
-                "eventTriggerSource": event.event_trigger_source.name,
-            }
-        elif event.frame_count:
-            # Frame count is present, event is concluded
-            self._attr_is_on = False
-            self._attr_extra_state_attributes = {}
+        if event.frame_count:
+            self._attr_is_on = self.device.is_unlocked_in_idle_state()
+            self._current_event = Event()
         else:
-            if event.event_classification:
-                self._attr_extra_state_attributes["eventClassification"] = (
-                    event.event_classification.name
-                )
-            if event.rfid_codes:
-                self._attr_extra_state_attributes["rfidCodes"] = event.rfid_codes
+            unlocked = self.device.is_unlocked_by_event(event)
+            if unlocked is not None:
+                _LOGGER.debug("Lock state changed to %s for event %s", unlocked, event)
+                self._attr_is_on = unlocked

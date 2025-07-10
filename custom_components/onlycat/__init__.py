@@ -81,10 +81,24 @@ async def async_setup_entry(
                 "Device with ID %s not found in runtime data", update.device_id
             )
 
+    async def subscribe_to_device_event(data: dict) -> None:
+        """Subscribe to a device event to get updates about the event in the future."""
+        await entry.runtime_data.client.send_message(
+            "getEvent",
+            {
+                "deviceId": data["deviceId"],
+                "eventId": data["eventId"],
+                "subscribe": True,
+            },
+        )
+
     await refresh_subscriptions(None)
     entry.runtime_data.client.add_event_listener("connect", refresh_subscriptions)
     entry.runtime_data.client.add_event_listener("userUpdate", refresh_subscriptions)
     entry.runtime_data.client.add_event_listener("deviceUpdate", update_device)
+    entry.runtime_data.client.add_event_listener(
+        "deviceEventUpdate", subscribe_to_device_event
+    )
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     entry.async_on_unload(entry.add_update_listener(async_reload_entry))

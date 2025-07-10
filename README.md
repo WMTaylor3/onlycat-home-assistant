@@ -4,10 +4,13 @@ HomeAssistant integration for OnlyCat flaps.
 
 ## Features
 1. Discover all flaps associated with one account
-2. Show flap connection status
-3. Show and allow to select active door policy (policies have to be created/modified via app)
-4. Show event activity (timestamp, RFIDs, event classification)
-5. Show pet presence
+2. Show and allow to select active door policy (policies have to be created/modified via app)
+3. Sensors for:
+   * Flap connection status
+   * Flap events (timestamp, RFID codes, trigger source, event classification)
+   * Contraband detection
+   * Lock state
+4. Device Tracker for pet presence
 
 ## How to install
 1. Install HACS

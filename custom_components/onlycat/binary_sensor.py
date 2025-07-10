@@ -5,8 +5,9 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from .binary_sensor_connectivity import OnlyCatConnectionSensor
+from .binary_sensor_contraband import OnlyCatContrabandSensor
 from .binary_sensor_event import OnlyCatEventSensor
-from .binary_sensor_pet import OnlyCatPetSensor
+from .binary_sensor_lock import OnlyCatLockSensor
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
@@ -29,20 +30,17 @@ async def async_setup_entry(
                 device=device,
                 api_client=entry.runtime_data.client,
             ),
+            OnlyCatContrabandSensor(
+                device=device,
+                api_client=entry.runtime_data.client,
+            ),
+            OnlyCatLockSensor(
+                device=device,
+                api_client=entry.runtime_data.client,
+            ),
             OnlyCatConnectionSensor(
                 device=device,
                 api_client=entry.runtime_data.client,
             ),
         )
     )
-    if entry.runtime_data.pets:
-        async_add_entities(
-            sensor
-            for pet in entry.runtime_data.pets
-            for sensor in (
-                OnlyCatPetSensor(
-                    pet=pet,
-                    api_client=entry.runtime_data.client,
-                ),
-            )
-        )
