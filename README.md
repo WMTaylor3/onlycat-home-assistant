@@ -11,6 +11,9 @@ HomeAssistant integration for OnlyCat flaps.
    * Contraband detection
    * Lock state
 4. Device Tracker for pet presence
+5. Services for
+   * Remote unlocking the flap (onlycat.remote_unlock)
+   * Overriding a pets location (onlycat.set_pet_location)
 
 ## How to install
 1. Install HACS
