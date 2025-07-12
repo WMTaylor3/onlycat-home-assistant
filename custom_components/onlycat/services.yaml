@@ -1,0 +1,17 @@
+set_pet_location:
+  name: Set pet location
+  description: Overrides the current location of a pet
+  fields:
+    device_tracker:
+      name: Pet Device Tracker
+      description: The OnlyCat integrations device tracker
+      required: true
+      selector:
+        entity:
+          domain: device_tracker
+    location:
+      name: Location
+      description: The new location ("home" or "not_home")
+      required: true
+      selector:
+        text:

@@ -117,3 +117,11 @@ class OnlyCatPetTracker(TrackerEntity):
         self._current_event.update_from(EventUpdate.from_api_response(data).body)
         self.determine_new_state(self._current_event)
         self.async_write_ha_state()
+
+    async def manual_update_location(self, location: str) -> None:
+        """Manually override current state of a pets device tracker."""
+        if location not in (STATE_HOME, STATE_NOT_HOME):
+            _LOGGER.debug("Manual update of location cannot be set to %s", location)
+            return
+        self._attr_location_name = location
+        self.async_write_ha_state()

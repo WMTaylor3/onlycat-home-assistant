@@ -8,6 +8,7 @@ from dataclasses import dataclass, fields
 from datetime import UTC, datetime, tzinfo
 from typing import TYPE_CHECKING
 
+from .event import EventTriggerSource
 from .pet import PolicyResult
 from .type import Type
 
@@ -53,11 +54,12 @@ class Device:
     device_transit_policy: DeviceTransitPolicy | None = None
 
     @classmethod
-    def from_api_response(cls, api_device: dict) -> Device | None:
+    def from_api_response(
+        cls, api_device: dict, device_id: str | None = None
+    ) -> Device | None:
         """Create a Device instance from API response data."""
         if api_device is None:
             return None
-
         timezone_str = api_device.get("timeZone")
         if timezone_str is not None:
             try:
@@ -67,9 +69,11 @@ class Device:
                 timezone = UTC
         else:
             timezone = UTC
-
+        device_id = api_device.get("deviceId", device_id)
+        if device_id is None:
+            return None
         return cls(
-            device_id=api_device["deviceId"],
+            device_id=device_id,
             connectivity=DeviceConnectivity.from_api_response(
                 api_device.get("connectivity")
             ),
@@ -101,6 +105,8 @@ class Device:
 
     def is_unlocked_by_event(self, event: Event) -> bool | None:
         """Check if the device is unlocked by the given event."""
+        if event.event_trigger_source == EventTriggerSource.REMOTE:
+            return True
         policy_result = self.device_transit_policy.determine_policy_result(event)
         if policy_result == PolicyResult.UNLOCKED:
             return True
@@ -122,9 +128,10 @@ class DeviceUpdate:
         """Create a DeviceUpdate instance from API response data."""
         if api_event is None:
             return None
-
         return cls(
             device_id=api_event["deviceId"],
             type=Type(api_event["type"]) if api_event.get("type") else Type.UNKNOWN,
-            body=Device.from_api_response(api_event.get("body")),
+            body=Device.from_api_response(
+                api_event.get("body"), device_id=api_event["deviceId"]
+            ),
         )

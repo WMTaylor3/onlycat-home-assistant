@@ -20,6 +20,7 @@ from .data.device import Device, DeviceUpdate
 from .data.event import Event
 from .data.pet import Pet
 from .data.policy import DeviceTransitPolicy
+from .services import async_setup_services
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
@@ -28,6 +29,7 @@ PLATFORMS: list[Platform] = [
     Platform.BINARY_SENSOR,
     Platform.SELECT,
     Platform.DEVICE_TRACKER,
+    Platform.BUTTON,
 ]
 _LOGGER = logging.getLogger(__name__)
 
@@ -100,6 +102,7 @@ async def async_setup_entry(
         "deviceEventUpdate", subscribe_to_device_event
     )
 
+    await async_setup_services(hass)
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     entry.async_on_unload(entry.add_update_listener(async_reload_entry))
     return True
