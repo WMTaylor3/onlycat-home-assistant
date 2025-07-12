@@ -54,8 +54,8 @@ class Event:
     event_id: int | None = None
     timestamp: datetime | None = None
     frame_count: int | None = None
-    event_trigger_source: EventTriggerSource | None = None
-    event_classification: EventClassification | None = None
+    event_trigger_source: EventTriggerSource | None = EventTriggerSource.UNKNOWN
+    event_classification: EventClassification | None = EventClassification.UNKNOWN
     poster_frame_index: int | None = None
     access_token: str | None = None
     rfid_codes: list[str] | None = None
