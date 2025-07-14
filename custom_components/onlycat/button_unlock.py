@@ -5,7 +5,10 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING
 
-from homeassistant.components.button import ButtonEntity, ButtonEntityDescription, ButtonDeviceClass
+from homeassistant.components.button import (
+    ButtonEntity,
+    ButtonEntityDescription,
+)
 from homeassistant.helpers.device_registry import DeviceInfo
 
 from .const import DOMAIN
