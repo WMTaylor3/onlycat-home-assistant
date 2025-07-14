@@ -114,7 +114,7 @@ class EventUpdate:
         event_type = (
             Type(api_event.get("type")) if api_event.get("type") else Type.UNKNOWN
         )
-        body = api_event.get("body")
+        body = Event.from_api_response(api_event.get("body"))
         return cls(
             device_id=device_id,
             event_id=event_id,
