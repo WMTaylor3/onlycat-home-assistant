@@ -11,8 +11,10 @@ HomeAssistant integration for OnlyCat flaps.
    * Contraband detection
    * Lock state
 4. Device Tracker for pet presence
-5. Services for
-   * Remote unlocking the flap (onlycat.remote_unlock)
+5. Buttons for:
+   * Reboot
+   * Remote unlock
+6. Services for:
    * Overriding a pets location (onlycat.set_pet_location)
 
 ## How to install

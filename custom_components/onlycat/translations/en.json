@@ -41,6 +41,14 @@
             "onlycat_policy_select": {
                 "name": "Door Policy"
             }
+        },
+        "button": {
+            "onlycat_reboot_button": {
+                "name": "Reboot"
+            },
+            "onlycat_unlock_button": {
+                "name": "Unlock"
+            }
         }
     }
 }

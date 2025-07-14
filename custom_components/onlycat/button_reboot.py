@@ -5,7 +5,11 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING
 
-from homeassistant.components.button import ButtonEntity, ButtonEntityDescription
+from homeassistant.components.button import (
+    ButtonDeviceClass,
+    ButtonEntity,
+    ButtonEntityDescription,
+)
 from homeassistant.helpers.device_registry import DeviceInfo
 
 from .const import DOMAIN
@@ -19,6 +23,7 @@ if TYPE_CHECKING:
 ENTITY_DESCRIPTION = ButtonEntityDescription(
     key="OnlyCat",
     name="Reboot",
+    device_class=ButtonDeviceClass.RESTART,
     translation_key="onlycat_reboot_button",
 )
 
