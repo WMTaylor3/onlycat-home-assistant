@@ -58,7 +58,7 @@ class Event:
     event_classification: EventClassification | None = EventClassification.UNKNOWN
     poster_frame_index: int | None = None
     access_token: str | None = None
-    rfid_codes: list[str] = []
+    rfid_codes: list[str] | None = None
 
     @classmethod
     def from_api_response(cls, api_event: dict) -> Event | None:
@@ -83,7 +83,7 @@ class Event:
             else None,
             poster_frame_index=api_event.get("posterFrameIndex"),
             access_token=api_event.get("accessToken"),
-            rfid_codes=api_event.get("rfidCodes"),
+            rfid_codes=api_event.get("rfidCodes", []),
         )
 
     def update_from(self, updated_event: Event) -> None:
@@ -111,11 +111,13 @@ class EventUpdate:
         """Create an EventUpdate instance from API response data."""
         device_id = api_event.get("deviceId", api_event.get("body").get("deviceId"))
         event_id = api_event.get("eventId", api_event.get("body").get("eventId"))
-        type = Type(api_event.get("type")) if api_event.get("type") else Type.UNKNOWN
+        event_type = (
+            Type(api_event.get("type")) if api_event.get("type") else Type.UNKNOWN
+        )
         body = api_event.get("body")
         return cls(
             device_id=device_id,
             event_id=event_id,
-            type=type,
+            type=event_type,
             body=body,
         )
