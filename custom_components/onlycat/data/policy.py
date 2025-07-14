@@ -174,7 +174,7 @@ class RuleCriteria:
         ):
             return False
 
-        if self.rfid_codes and not any(
+        if self.rfid_codes and event.rfid_codes and not any(
             code in self.rfid_codes for code in event.rfid_codes
         ):
             return False

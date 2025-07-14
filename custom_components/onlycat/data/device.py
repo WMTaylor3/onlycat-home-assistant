@@ -49,7 +49,7 @@ class Device:
     device_id: str
     connectivity: DeviceConnectivity | None = None
     description: str | None = None
-    time_zone: tzinfo | None = None
+    time_zone: tzinfo | None = UTC
     device_transit_policy_id: int | None = None
     device_transit_policy: DeviceTransitPolicy | None = None
 
