@@ -13,7 +13,7 @@ from homeassistant.components.binary_sensor import (
 from homeassistant.helpers.device_registry import DeviceInfo
 
 from .const import DOMAIN
-from .data.event import Event, EventUpdate
+from .data.event import EventUpdate
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -73,7 +73,11 @@ class OnlyCatEventSensor(BinarySensorEntity):
     def determine_new_state(self, event: EventUpdate) -> None:
         """Determine the new state of the sensor based on the event."""
         if (self._attr_extra_state_attributes.get("eventId")) != event.event_id:
-            _LOGGER.debug("Event ID has changed (%s -> %s), updating state.", self._attr_extra_state_attributes.get("eventId"), event.event_id)
+            _LOGGER.debug(
+                "Event ID has changed (%s -> %s), updating state.",
+                self._attr_extra_state_attributes.get("eventId"),
+                event.event_id,
+            )
             self._attr_is_on = True
             self._attr_extra_state_attributes = {
                 "eventId": event.event_id,

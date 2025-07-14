@@ -61,7 +61,7 @@ class Event:
     rfid_codes: list[str] | None = None
 
     @classmethod
-    def from_api_response(cls, api_event: dict, event_id: int | None = None) -> Event | None:
+    def from_api_response(cls, api_event: dict) -> Event | None:
         """Create an Event instance from API response data."""
         if not api_event:
             return None
