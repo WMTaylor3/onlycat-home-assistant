@@ -41,6 +41,14 @@
             "onlycat_policy_select": {
                 "name": "Zugangsrichtlinie"
             }
+        },
+        "button": {
+            "onlycat_reboot_button": {
+                "name": "Neustarten"
+            },
+            "onlycat_unlock_button": {
+                "name": "Aufschließen"
+            }
         }
     }
 }
