@@ -70,7 +70,7 @@ class OnlyCatContrabandSensor(BinarySensorEntity):
         if data["deviceId"] != self.device.device_id:
             return
 
-        self._current_event.update_from(EventUpdate.from_api_response(data).body)
+        self._current_event.update_from(EventUpdate.from_api_response(data).event)
         self.determine_new_state(self._current_event)
         self.async_write_ha_state()
 

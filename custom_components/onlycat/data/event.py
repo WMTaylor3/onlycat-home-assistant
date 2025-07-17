@@ -104,7 +104,7 @@ class EventUpdate:
     device_id: str
     event_id: int
     type: Type
-    body: Event
+    event: Event
 
     @classmethod
     def from_api_response(cls, api_event: dict) -> EventUpdate | None:
@@ -114,10 +114,12 @@ class EventUpdate:
         event_type = (
             Type(api_event.get("type")) if api_event.get("type") else Type.UNKNOWN
         )
-        body = Event.from_api_response(api_event.get("body"))
+        event = Event.from_api_response(api_event.get("body"))
+        if event.event_id is None:
+            event.event_id = event_id
         return cls(
             device_id=device_id,
             event_id=event_id,
             type=event_type,
-            body=body,
+            event=event,
         )

@@ -12,3 +12,7 @@ logger:
     custom_components.onlycat: debug
     socketio: debug
     aiohttp: debug
+
+debugpy:
+  start: true
+  wait: false

@@ -13,7 +13,7 @@ from homeassistant.components.binary_sensor import (
 from homeassistant.helpers.device_registry import DeviceInfo
 
 from .const import DOMAIN
-from .data.event import EventUpdate
+from .data.event import Event, EventUpdate
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -67,10 +67,10 @@ class OnlyCatEventSensor(BinarySensorEntity):
         if data["deviceId"] != self.device.device_id:
             return
 
-        self.determine_new_state(EventUpdate.from_api_response(data))
+        self.determine_new_state(EventUpdate.from_api_response(data).event)
         self.async_write_ha_state()
 
-    def determine_new_state(self, event: EventUpdate) -> None:
+    def determine_new_state(self, event: Event) -> None:
         """Determine the new state of the sensor based on the event."""
         if (self._attr_extra_state_attributes.get("eventId")) != event.event_id:
             _LOGGER.debug(
@@ -79,21 +79,22 @@ class OnlyCatEventSensor(BinarySensorEntity):
                 event.event_id,
             )
             self._attr_is_on = True
+
             self._attr_extra_state_attributes = {
                 "eventId": event.event_id,
-                "timestamp": event.body.timestamp,
-                "eventTriggerSource": event.body.event_trigger_source.name,
+                "timestamp": event.timestamp,
+                "eventTriggerSource": event.event_trigger_source.name,
             }
-            if event.body.rfid_codes:
-                self._attr_extra_state_attributes["rfidCodes"] = event.body.rfid_codes
-        elif event.body.frame_count:
+            if event.rfid_codes:
+                self._attr_extra_state_attributes["rfidCodes"] = event.rfid_codes
+        elif event.frame_count:
             # Frame count is present, event is concluded
             self._attr_is_on = False
             self._attr_extra_state_attributes = {}
         else:
-            if event.body.event_classification:
+            if event.event_classification:
                 self._attr_extra_state_attributes["eventClassification"] = (
-                    event.body.event_classification.name
+                    event.event_classification.name
                 )
-            if event.body.rfid_codes:
-                self._attr_extra_state_attributes["rfidCodes"] = event.body.rfid_codes
+            if event.rfid_codes:
+                self._attr_extra_state_attributes["rfidCodes"] = event.rfid_codes
