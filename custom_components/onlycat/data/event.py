@@ -83,7 +83,7 @@ class Event:
             else None,
             poster_frame_index=api_event.get("posterFrameIndex"),
             access_token=api_event.get("accessToken"),
-            rfid_codes=api_event.get("rfidCodes"),
+            rfid_codes=api_event.get("rfidCodes", []),
         )
 
     def update_from(self, updated_event: Event) -> None:
@@ -104,14 +104,22 @@ class EventUpdate:
     device_id: str
     event_id: int
     type: Type
-    body: Event
+    event: Event
 
     @classmethod
     def from_api_response(cls, api_event: dict) -> EventUpdate | None:
         """Create an EventUpdate instance from API response data."""
+        device_id = api_event.get("deviceId", api_event.get("body").get("deviceId"))
+        event_id = api_event.get("eventId", api_event.get("body").get("eventId"))
+        event_type = (
+            Type(api_event.get("type")) if api_event.get("type") else Type.UNKNOWN
+        )
+        event = Event.from_api_response(api_event.get("body"))
+        if event.event_id is None:
+            event.event_id = event_id
         return cls(
-            device_id=api_event["deviceId"],
-            event_id=api_event["eventId"],
-            type=Type(api_event["type"]) if api_event.get("type") else Type.UNKNOWN,
-            body=Event.from_api_response(api_event.get("body")),
+            device_id=device_id,
+            event_id=event_id,
+            type=event_type,
+            event=event,
         )
