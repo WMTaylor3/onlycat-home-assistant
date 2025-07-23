@@ -1,28 +1,61 @@
-# onlycat-home-assistant
+# OnlyCat Integration for Home Assistant
 
-HomeAssistant integration for OnlyCat flaps.
+HomeAssistant integration for [OnlyCat](https://www.onlycat.com/) flaps.
 
 ## Features
-1. Discover all flaps associated with one account
-2. Show and allow to select active door policy (policies have to be created/modified via app)
-3. Sensors for:
-   * Flap connection status
-   * Flap events (timestamp, RFID codes, trigger source, event classification)
-   * Contraband detection
-   * Lock state
-4. Device Tracker for pet presence
-5. Buttons for:
-   * Reboot
-   * Remote unlock
-6. Services for:
-   * Overriding a pets location (onlycat.set_pet_location)
 
-## How to install
-1. Install HACS
-2. Add this repository to HACS via "Custom Repositories"
-3. Install OnlyCat Integration
+* 🏠 Know whether your pet is home or on the hunt using the Device Tracker
+  * 🐾 In case your pet chooses another exit, you can override the presence using the set_pet_location service
+* 🚪 Manage the active door policy manually or using automations
+* 🔎 Keep track of your device and build automations with it using sensors for:
+   * 📶 Flap connection status
+   * 🕒 Flap events (timestamp, RFID codes, trigger source, event classification)
+   * 🐭 Contraband detection
+   * 🔐 Lock state
+* 🔄 Control your flap remotely using reboot and remote unlock options
 
-## Development
+Common automation ideas enabled by this integration include:
+
+* 🚨 Switch the door policy to "Locked" for a longer time period than usual when contraband is detected
+* 💦 Deter intruders by triggering a sprinkler when an unknown RFID code is detected
+* 🧹 Start your robot vacuum when your pet leaves the house
+* 😻 Roll out the red carpet for your pet by activating welcome lights or triggering a feeder upon arrival
+
+## Installation
+[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=OnlyCatAI&repository=onlycat-home-assistant&category=integration)
+
+1. Install [Home Assistant Community Store (HACS)](https://hacs.xyz/) if you haven't done so already.
+2. Open HACS in Home Assistant 
+3. Click the three dots in the top right corner
+4. Select "Custom repositories"
+5. Add this repository URL: https://github.com/OnlyCatAI/onlycat-home-assistant
+6. Set category to "Integration"
+7. Click "Add"
+8. Search for "OnlyCat" and install 
+9. Restart Home Assistant
+
+## Configuration
+[![Open your Home Assistant instance and start setting up a new integration.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=onlycat)
+
+1. Go to `Settings` > `Devices & Services` > `Add Integration`
+2. Search for "OnlyCat"
+3. Enter your configuration:
+   * **Device Token**: The device token of your OnlyCat flap. You can find it in the OnlyCat app under "Account".
+
+## Limitations
+
+Currently, the following features of the OnlyCat app are not yet included in the Home Assistant integration:
+
+* Creating or modifying door policies
+* Creating or modifying pet profiles (i.e., labels for RFID codes)
+* Accessing the video or poster frame of flap events
+
+## Contributing
+
+Contributions are welcome! If you have ideas for new features & improvements or want to report a bug,
+please open an issue or submit a pull request.
+
+To get a local development environment up and running, follow these steps:
 
 1. Install pip requirements via `pip install -r requirements.txt`
 2. Run a HA instance:
