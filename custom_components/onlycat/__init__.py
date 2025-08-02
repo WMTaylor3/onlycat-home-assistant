@@ -132,8 +132,8 @@ async def _initialize_devices(entry: OnlyCatConfigEntry) -> None:
 async def _retrieve_current_transit_policy(
     entry: OnlyCatConfigEntry, device: Device
 ) -> None:
-    # if device.device_transit_policy_id is None: 
-    #     return None
+    if device.device_transit_policy_id is None:
+        return
     transit_policy = DeviceTransitPolicy.from_api_response(
         await entry.runtime_data.client.send_message(
             "getDeviceTransitPolicy",

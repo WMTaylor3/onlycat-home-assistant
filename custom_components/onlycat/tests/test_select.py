@@ -1,36 +1,26 @@
+"""Test of OnlyCat Policy Select entity."""
+
 from unittest.mock import AsyncMock
+
 import pytest
-from typing import Any
+from homeassistant.components.select import SelectEntityDescription
 
 from custom_components.onlycat import Device
-from custom_components.onlycat.select import load_policies
-from custom_components.onlycat.data.policy import DeviceTransitPolicy
-from homeassistant.components.select import SelectEntityDescription
-from custom_components.onlycat.select import OnlyCatPolicySelect
+from custom_components.onlycat.select import OnlyCatPolicySelect, load_policies
 
 get_device_transit_policies = [
     [],
     [
-        {
-            "deviceTransitPolicyId": 0,
-            "deviceId":"OC-00000000001",
-            "name":"Policy1"
-        },{
-            "deviceTransitPolicyId":1,
-            "deviceId":"OC-00000000001",
-            "name":"Policy2"
-        },{
-            "deviceTransitPolicyId": 2,
-            "deviceId":"OC-00000000001",
-            "name":"Policy3"
-        }
-    ]
+        {"deviceTransitPolicyId": 0, "deviceId": "OC-00000000001", "name": "Policy1"},
+        {"deviceTransitPolicyId": 1, "deviceId": "OC-00000000001", "name": "Policy2"},
+        {"deviceTransitPolicyId": 2, "deviceId": "OC-00000000001", "name": "Policy3"},
+    ],
 ]
 
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("data", get_device_transit_policies)
-async def test_load_policies(data) -> None:
+async def test_load_policies(data: list) -> None:
     """Test loading policies for a device."""
     mock_client = AsyncMock()
     mock_client.send_message.side_effect = [data]
@@ -40,15 +30,14 @@ async def test_load_policies(data) -> None:
 
     # Verify API call
     mock_client.send_message.assert_called_once_with(
-        "getDeviceTransitPolicies",
-        {"deviceId": device_id}
+        "getDeviceTransitPolicies", {"deviceId": device_id}
     )
 
     # Verify results
     assert len(policies) == len(data)
-    
 
-def test_empty_onlycat_policy_slect():
+
+def test_empty_onlycat_policy_slect() -> None:
     """Tests initialization of OnlyCatPolicySelect with no active or known policies."""
     mock_device = Device(
         device_id="OC-00000000001",
@@ -65,3 +54,5 @@ def test_empty_onlycat_policy_slect():
         entity_description=entity_description,
         api_client=mock_api_client,
     )
+
+    assert select.device.device_id == "OC-00000000001"
