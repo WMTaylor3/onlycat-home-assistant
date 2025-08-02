@@ -100,7 +100,8 @@ class OnlyCatPolicySelect(SelectEntity):
         self._attr_options = [policy.name for policy in policies]
         self.device: Device = device
         self._policies = policies
-        self.set_current_policy(device.device_transit_policy_id)
+        if device.device_transit_policy_id is not None:
+            self.set_current_policy(device.device_transit_policy_id)
         api_client.add_event_listener("deviceUpdate", self.on_device_update)
 
     def set_current_policy(self, policy_id: int) -> None:

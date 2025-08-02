@@ -75,7 +75,8 @@ async def async_setup_entry(
                     )
                 )
                 device.update_from(updated_device)
-                await _retrieve_current_transit_policy(entry, device)
+                if device.device_transit_policy_id is not None:
+                    await _retrieve_current_transit_policy(entry, device)
                 _LOGGER.debug("Updated device: %s", device)
                 break
         else:
@@ -131,6 +132,8 @@ async def _initialize_devices(entry: OnlyCatConfigEntry) -> None:
 async def _retrieve_current_transit_policy(
     entry: OnlyCatConfigEntry, device: Device
 ) -> None:
+    # if device.device_transit_policy_id is None: 
+    #     return None
     transit_policy = DeviceTransitPolicy.from_api_response(
         await entry.runtime_data.client.send_message(
             "getDeviceTransitPolicy",

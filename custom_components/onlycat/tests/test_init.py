@@ -1,12 +1,13 @@
 """Tests for OnlyCat/__init.py."""
 
-from typing import Any
+from typing import Any, TYPE_CHECKING
 from unittest.mock import AsyncMock, patch
 
 import pytest
 
 from custom_components.onlycat import (
     _initialize_devices,
+    Device
 )
 
 get_devices = [
@@ -83,6 +84,27 @@ get_device_transit_policy = {
         },
     }
 }
+device_update = [
+    {
+        'type': 'update', 
+        'deviceId': 'OC-00000000002', 
+        'body': {
+            'connectivity': {
+                'connected': False, 
+                'disconnectReason': 'SERVER_INITIATED_DISCONNECT', 
+                'timestamp': 1754114553075
+            }
+        }
+    },
+    {
+        'deviceId': 'OC-00000000002',
+        'type': 'update',
+        'body': {
+            'deviceId': 'OC-00000000002',
+            'deviceTransitPolicyId': 0000
+        }
+    }
+]
 
 
 async def mock_send_message(topic: str, data: dict) -> Any | None:
@@ -118,3 +140,4 @@ async def test_initialize_devices() -> None:
         )
     assert mock_entry.runtime_data.devices[1].device_transit_policy_id is None
     assert mock_retrieve_current_transit_policy.call_count == 1
+
