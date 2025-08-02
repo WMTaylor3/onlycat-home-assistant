@@ -244,7 +244,7 @@ class DeviceTransitPolicy:
     @classmethod
     def from_api_response(cls, api_policy: dict) -> DeviceTransitPolicy | None:
         """Create a DeviceTransitPolicy instance from API response data."""
-        if api_policy is None:
+        if api_policy is None or "deviceTransitPolicyId" not in api_policy:
             return None
 
         return cls(

@@ -124,7 +124,8 @@ async def _initialize_devices(entry: OnlyCatConfigEntry) -> None:
         entry.runtime_data.devices.append(device)
 
     for device in entry.runtime_data.devices:
-        await _retrieve_current_transit_policy(entry, device)
+        if device.device_transit_policy_id is not None:
+            await _retrieve_current_transit_policy(entry, device)
 
 
 async def _retrieve_current_transit_policy(
