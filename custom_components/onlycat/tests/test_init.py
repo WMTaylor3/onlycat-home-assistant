@@ -27,7 +27,7 @@ get_devices = [
 get_device = {
     "OC-00000000001": {
         "deviceId": "OC-00000000001",
-        "description": "Durins Tor",
+        "description": "Device Name",
         "timeZone": "Europe/Zurich",
         "deviceTransitPolicyId": 0000,
         "connectivity": {
@@ -38,7 +38,7 @@ get_device = {
     },
     "OC-00000000002": {
         "deviceId": "OC-00000000002",
-        "description": "Durins Tor",
+        "description": "Device Name",
         "timeZone": "Europe/Zurich",
         "connectivity": {
             "connected": True,
