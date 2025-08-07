@@ -15,3 +15,15 @@ set_pet_location:
       required: true
       selector:
         text:
+
+toggle_pet_location:
+  name: Toggle pet location
+  description: Toggles the current location of a pet between home and not_home
+  fields:
+    device_tracker:
+      name: Pet Device Tracker
+      description: The OnlyCat integrations device tracker
+      required: true
+      selector:
+        entity:
+          domain: device_tracker
