@@ -34,18 +34,6 @@ ENTITY_DESCRIPTION = SelectEntityDescription(
 )
 
 
-async def load_policies(
-    api_client: OnlyCatApiClient, device_id: str
-) -> list[DeviceTransitPolicy]:
-    """Load policies for a device."""
-    return [
-        DeviceTransitPolicy.from_api_response(policy)
-        for policy in await api_client.send_message(
-            "getDeviceTransitPolicies", {"deviceId": device_id}
-        )
-    ]
-
-
 async def async_setup_entry(
     hass: HomeAssistant,  # noqa: ARG001 Unused function argument: `hass`
     entry: OnlyCatConfigEntry,
@@ -54,7 +42,7 @@ async def async_setup_entry(
     """Set up the sensor platform."""
     entities = []
     for device in entry.runtime_data.devices:
-        policies = await load_policies(entry.runtime_data.client, device.device_id)
+        policies = device.device_transit_policies
         entities.append(
             OnlyCatPolicySelect(
                 device=device,

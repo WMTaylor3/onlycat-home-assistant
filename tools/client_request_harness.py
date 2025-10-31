@@ -37,10 +37,6 @@ async def main():
         ssl_verify=True,
     )
 
-    @sio.on("*")
-    async def on_any_event(event, data):
-        print(f"Received event: {event} → {data}")
-
     # Connect and send
     try:
         await sio.connect(
@@ -52,7 +48,10 @@ async def main():
         print("Connected to OnlyCat")
 
         response = await sio.call(args.event, data)
-        print(f"Response from '{args.event}': {response}")
+
+        # Pretty-print JSON response
+        print(f"Response from '{args.event}':")
+        print(json.dumps(response, indent=2))
 
     except Exception as e:
         print(f"Error: {e}")

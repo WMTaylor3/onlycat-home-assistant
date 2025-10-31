@@ -6,7 +6,7 @@ import pytest
 from homeassistant.components.select import SelectEntityDescription
 
 from custom_components.onlycat import Device
-from custom_components.onlycat.select import OnlyCatPolicySelect, load_policies
+from custom_components.onlycat.select_active_door_policy import OnlyCatPolicySelect, load_policies
 
 get_device_transit_policies = [
     [],
