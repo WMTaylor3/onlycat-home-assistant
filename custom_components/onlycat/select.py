@@ -1,4 +1,4 @@
-"""Sensor platform for OnlyCat."""
+"""Select platform for OnlyCat."""
 
 from __future__ import annotations
 

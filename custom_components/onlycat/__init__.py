@@ -7,6 +7,7 @@ https://github.com/OnlyCatAI/onlycat-home-assistant
 
 from __future__ import annotations
 
+import asyncio
 import logging
 from datetime import datetime
 from typing import TYPE_CHECKING
@@ -30,6 +31,7 @@ PLATFORMS: list[Platform] = [
     Platform.SELECT,
     Platform.DEVICE_TRACKER,
     Platform.BUTTON,
+    Platform.SENSOR,
 ]
 _LOGGER = logging.getLogger(__name__)
 
@@ -75,8 +77,7 @@ async def async_setup_entry(
                     )
                 )
                 device.update_from(updated_device)
-                if device.device_transit_policy_id is not None:
-                    await _retrieve_current_transit_policy(entry, device)
+                await _retrieve_device_transit_policies(entry, device)
                 _LOGGER.debug("Updated device: %s", device)
                 break
         else:
@@ -125,24 +126,50 @@ async def _initialize_devices(entry: OnlyCatConfigEntry) -> None:
         entry.runtime_data.devices.append(device)
 
     for device in entry.runtime_data.devices:
-        if device.device_transit_policy_id is not None:
-            await _retrieve_current_transit_policy(entry, device)
+        await _retrieve_device_transit_policies(entry, device)
 
-
-async def _retrieve_current_transit_policy(
+async def _retrieve_device_transit_policies(
     entry: OnlyCatConfigEntry, device: Device
 ) -> None:
-    if device.device_transit_policy_id is None:
-        return
-    transit_policy = DeviceTransitPolicy.from_api_response(
-        await entry.runtime_data.client.send_message(
-            "getDeviceTransitPolicy",
-            {"deviceTransitPolicyId": device.device_transit_policy_id},
-        )
+    resp = await entry.runtime_data.client.send_message(
+        "getDeviceTransitPolicies", {"deviceId": device.device_id}
     )
-    transit_policy.device = device
-    device.device_transit_policy = transit_policy
-
+    if not resp:
+        return []
+    
+    # First populate a list of IDs
+    policy_ids: list[int] = []    
+    for item in resp:
+        pid = item.get("deviceTransitPolicyId")
+        if pid is None:
+            continue
+        policy_ids.append(pid)
+    
+    # Then fetch full policy details in parallel
+    if not policy_ids:
+        return []
+    
+    coros = [
+        entry.runtime_data.client.send_message(
+            "getDeviceTransitPolicy",
+            {"deviceTransitPolicyId": pid}
+        )
+        for pid in policy_ids
+    ]
+    responses = await asyncio.gather(*coros, return_exceptions=True)
+    policies: list[DeviceTransitPolicy] = []
+    for pid, res in zip(policy_ids, responses):
+        if isinstance(res, Exception):
+            _LOGGER.warning(
+                "Failed to load policy %s for device %s: %s", pid, device.device_id, res
+            )
+            continue
+        policy = DeviceTransitPolicy.from_api_response(res)
+        policy.device = device
+        if policy is not None:
+            policies.append(policy)
+    
+    device.device_transit_policies = policies
 
 async def _initialize_pets(entry: OnlyCatConfigEntry) -> None:
     for device in entry.runtime_data.devices:

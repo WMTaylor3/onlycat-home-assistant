@@ -51,7 +51,16 @@ class Device:
     description: str | None = None
     time_zone: tzinfo | None = UTC
     device_transit_policy_id: int | None = None
-    device_transit_policy: DeviceTransitPolicy | None = None
+    device_transit_policies: list[DeviceTransitPolicy] | None = None
+
+    @property
+    def device_transit_policy(self) -> DeviceTransitPolicy | None:
+        if not self.device_transit_policies or self.device_transit_policy_id is None:
+            return None
+        return next(
+            (p for p in self.device_transit_policies if p.device_transit_policy_id == self.device_transit_policy_id),
+            None
+        )
 
     @classmethod
     def from_api_response(

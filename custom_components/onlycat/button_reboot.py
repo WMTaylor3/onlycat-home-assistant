@@ -1,4 +1,4 @@
-"""Unlcok Button for OnlyCat."""
+"""Reboot Button for OnlyCat."""
 
 from __future__ import annotations
 
