@@ -22,8 +22,17 @@ This script is for subscribing to SocketIO events as they come down from the clo
 Leave it running in the background in a terminal window with:
 ```sh
 (venv) user@computer:~/Documents/GitHub/onlycat-home-assistant/tools$ ./client_event_harness.py
+Received event: userUpdate →
+{
+  "id": 1234,
+  "sub": "auth0|123456789qwerty",
+  "email": "user@gmail.com",
+  "name": "user@gmail.com",
+  "description": null,
+  "avatarUrl": "",
+  "userLevel": null
+}
 Connected to OnlyCat — listening for events...
-Received event: userUpdate → [etc etc...] 
 ```
 
 ## client_request_harness.py
