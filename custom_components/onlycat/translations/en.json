@@ -43,7 +43,7 @@
             }
         },
         "sensor": {
-            "onlycat_door_policy_configuration_sensor": {
+            "onlycat_policy_configuration_sensor": {
                 "name": "Door Policy Configuration"
             }
         },

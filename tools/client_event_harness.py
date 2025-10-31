@@ -35,6 +35,7 @@ async def main():
             print(f" Subscribing to {device_id}")
             await sio.emit("getDevice", {"deviceId": device_id, "subscribe": True})
             await sio.emit("getDeviceEvents", {"deviceId": device_id, "subscribe": True})
+            await sio.emit("getDeviceTransitPolicies", {"deviceId": device_id, "subscribe": True})
 
     @sio.on("connect")
     async def on_connect():

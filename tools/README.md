@@ -56,7 +56,7 @@ Response from 'getDevice':
 }
 ```
 
-Requesting a list of door policies:
+Requesting a list of transit policies:
 ```sh
 (venv) user@computer:~/Documents/GitHub/onlycat-home-assistant/tools$ ./client_request_harness.py getDeviceTransitPolicies '{"deviceId": "OC-123ABC123ABC"}'
 Connected to OnlyCat
@@ -75,7 +75,7 @@ Response from 'getDeviceTransitPolicies':
 ]
 ```
 
-Requesting details for a specific door policy:
+Requesting details for a specific transit policy:
 ```sh
 (venv) user@computer:~/Documents/GitHub/onlycat-home-assistant/tools$ ./client_request_harness.py getDeviceTransitPolicy '{"deviceTransitPolicyId": "123456"}'
 Connected to OnlyCat

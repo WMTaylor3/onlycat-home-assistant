@@ -112,9 +112,9 @@ class OnlyCatPolicySelect(SelectEntity):
         device_update = DeviceUpdate.from_api_response(data)
         if device_update.body.device_transit_policy_id:
             # Reload policies in case a new policy got added in the meantime
-            self._policies = await load_policies(
-                self._api_client, self.device.device_id
-            )
+            # TODO: The next two lines can possibly be moved to a PoliciesUpdate event handler if such an event exists.
+            # Ask is currently out with OnlyCat about this.
+            self._policies = self.device.device_transit_policies
             self._attr_options = [policy.name for policy in self._policies]
             self.set_current_policy(device_update.body.device_transit_policy_id)
         self.async_write_ha_state()

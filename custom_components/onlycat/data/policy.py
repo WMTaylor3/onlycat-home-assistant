@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import logging
 from dataclasses import dataclass
 from datetime import datetime, timedelta, tzinfo
@@ -77,6 +78,12 @@ class RuleAction:
             lockout_duration=api_action.get("lockoutDuration"),
             sound=SoundAction(sound) if sound else None,
         )
+    
+    def to_dict(self) -> dict:
+        d = {"lock": self.lock, "lockoutDuration": self.lockout_duration}
+        if self.sound is not None:
+            d["sound"] = self.sound.value if hasattr(self.sound, "value") else str(self.sound)
+        return d
 
 
 @dataclass
@@ -104,6 +111,9 @@ class TimeRange:
             end_hour=end_hour,
             end_minute=end_minute,
         )
+    
+    def to_dict(self) -> str:
+        return f"{self.start_hour:02d}:{self.start_minute:02d}-{self.end_hour:02d}:{self.end_minute:02d}"
 
     def contains_timestamp(self, timestamp: datetime, timezone: tzinfo) -> bool:
         """Check if the given timestamp is within this time range."""
@@ -160,6 +170,29 @@ class RuleCriteria:
             rfid_timeout=api_criteria.get("rfidTimeout"),
         )
 
+    def to_dict(self) -> dict:
+        def pack_list(v):
+            if v is None:
+                return None
+            vals = [x.value if hasattr(x, "value") else x for x in v]
+            return vals[0] if len(vals) == 1 else vals
+
+        out: dict = {}
+        ets = pack_list(self.event_trigger_sources)
+        if ets is not None:
+            out["eventTriggerSource"] = ets
+        ecs = pack_list(self.event_classifications)
+        if ecs is not None:
+            out["eventClassification"] = ecs
+        if self.time_ranges:
+            tr = [t.to_dict() for t in self.time_ranges]
+            out["timeRange"] = tr[0] if len(tr) == 1 else tr
+        if self.rfid_codes:
+            out["rfidCode"] = self.rfid_codes[0] if len(self.rfid_codes) == 1 else self.rfid_codes
+        if self.rfid_timeout is not None:
+            out["rfidTimeout"] = self.rfid_timeout
+        return out
+    
     def matches(self, event: Event, timezone: tzinfo) -> bool:
         """Check if the event matches the criteria of this rule."""
         if (
@@ -206,6 +239,14 @@ class Rule:
             description=api_rule.get("description"),
             enabled=api_rule.get("enabled", True),  # Default to True if not specified
         )
+    
+    def to_dict(self) -> dict:
+        return {
+            "criteria": self.criteria.to_dict() if self.criteria else None,
+            "action": self.action.to_dict() if self.action else None,
+            "description": self.description,
+            "enabled": self.enabled,
+        }
 
 
 @dataclass
@@ -229,6 +270,13 @@ class TransitPolicy:
             idle_lock=api_policy.get("idleLock"),
             idle_lock_battery=api_policy.get("idleLockBattery"),
         )
+    
+    def to_dict(self) -> dict:
+        return {
+            "rules": [r.to_dict() for r in self.rules] if self.rules else [],
+            "idleLock": self.idle_lock,
+            "idleLockBattery": self.idle_lock_battery,
+        }
 
 
 @dataclass
@@ -255,6 +303,14 @@ class DeviceTransitPolicy:
                 api_policy.get("transitPolicy")
             ),
         )
+    
+    def to_dict(self) -> dict:
+        return {
+            "deviceTransitPolicyId": self.device_transit_policy_id,
+            "deviceId": self.device_id,
+            "name": self.name,
+            "transitPolicy": self.transit_policy.to_dict() if self.transit_policy else None,
+        }
 
     def determine_policy_result(self, event: Event) -> PolicyResult:
         """Determine the policy result for a given event."""

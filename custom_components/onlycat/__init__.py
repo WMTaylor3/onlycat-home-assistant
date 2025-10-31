@@ -103,6 +103,7 @@ async def async_setup_entry(
     entry.runtime_data.client.add_event_listener(
         "deviceEventUpdate", subscribe_to_device_event
     )
+    # TODO: policyUpdate event handling when we hear back from OnlyCat about its structure
 
     await async_setup_services(hass)
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
@@ -128,6 +129,10 @@ async def _initialize_devices(entry: OnlyCatConfigEntry) -> None:
     for device in entry.runtime_data.devices:
         await _retrieve_device_transit_policies(entry, device)
 
+# TODO: Currently this works by getting a list of policy IDs, then fetching each policy individually.
+# This happens whenever there is a device update which is super inefficient as usually policies aren't changing much.
+# Ideally we want to hear back from OnlyCat about whether they have a SocketIO event for policy updates.
+# Then device updates change policy ID, and policy updates change the underlying policy data.
 async def _retrieve_device_transit_policies(
     entry: OnlyCatConfigEntry, device: Device
 ) -> None:
@@ -170,6 +175,7 @@ async def _retrieve_device_transit_policies(
             policies.append(policy)
     
     device.device_transit_policies = policies
+
 
 async def _initialize_pets(entry: OnlyCatConfigEntry) -> None:
     for device in entry.runtime_data.devices:
