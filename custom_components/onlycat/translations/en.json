@@ -44,7 +44,7 @@
         },
         "sensor": {
             "onlycat_policy_configuration_sensor": {
-                "name": "Door Policy Configuration"
+                "name": "{policy_name} Policy Configuration"
             }
         },
         "button": {

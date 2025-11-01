@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import logging
 from typing import TYPE_CHECKING
 
@@ -31,50 +32,6 @@ ENTITY_DESCRIPTION = SensorEntityDescription(
     entity_category=EntityCategory.DIAGNOSTIC,
     translation_key="onlycat_policy_configuration_sensor",
 )
-
-# # TODO: We are now making this call twice, once in the select.py and once here.
-# # Here we only grab the IDs, but we are still making the secondary API calls.
-# # Woth moving into the runtime data methinks?
-# async def load_policy_ids(api_client: OnlyCatApiClient, device_id: str) -> list[str]:
-#     """Fetch only the policy IDs for a device"""
-#     resp = await api_client.send_message("getDeviceTransitPolicies", {"deviceId": device_id})
-#     if not resp:
-#         return []
-#     ids: list[str] = []
-#     for item in resp:
-#         pid = item.get("deviceTransitPolicyId")
-#         if pid is None:
-#             continue
-#         ids.append(str(pid))
-#     return ids
-
-
-# async def load_policies(
-#     api_client: OnlyCatApiClient, device_id: str
-# ) -> list[dict]:
-#     """Load full policy payloads for a device."""
-#     policy_ids = await load_policy_ids(api_client, device_id)
-#     if not policy_ids:
-#         return []
-
-#     # Fetch full policy details in parallel
-#     coros = [
-#         api_client.send_message("getDeviceTransitPolicy", {"deviceTransitPolicyId": pid})
-#         for pid in policy_ids
-#     ]
-#     responses = await asyncio.gather(*coros, return_exceptions=True)
-
-#     # Filter out errors and return only successful dict responses
-#     policies: list[dict] = []
-#     for pid, res in zip(policy_ids, responses):
-#         if isinstance(res, Exception):
-#             _LOGGER.warning(
-#                 "Failed to load policy %s for device %s: %s", pid, device_id, res
-#             )
-#             continue
-#         policies.append(res)
-
-#     return policies
 
 async def async_setup_entry(
     hass: HomeAssistant,
@@ -121,14 +78,31 @@ class OnlyCatTransitPolicyConfigSensor(SensorEntity):
         api_client: OnlyCatApiClient,
     ) -> None:
         """Initialize the sensor class."""
+        ## Home Assistant attributes and state
         self.entity_description = entity_description
-        self._state = policy.to_dict()
-        self._api_client = api_client
+        self._attr_native_value = policy.name # JSON payload exceeds the length limit for state values. Used name here. State stored as attribute.
+        self._attr_translation_placeholders = {
+            "policy_name": policy.name,
+        }
         self._attr_unique_id = (
-            f"{device.device_id.replace('-', '_').lower()}_policy_config_{device_transit_policy_id}"
+            device.device_id.replace("-", "_").lower()
+            + "_policy_config_"
+            + str(device_transit_policy_id)
+            + "_"
+            + policy.name
         )
-        self.entity_id = "sensor." + self._attr_unique_id
+        self._attr_extra_state_attributes = {
+            "policy_name": policy.name,
+            "policy_id": device_transit_policy_id,
+            "policy_json": json.dumps(policy.to_dict(), indent=2),
+            "currently_active": device.device_transit_policy_id == device_transit_policy_id,
+        }
+
+        ## Internal helpers
         self.device: Device = device
+        self.policy: DeviceTransitPolicy = policy
         self.policy_id = device_transit_policy_id
+        self._api_client = api_client
+
         # TODO: When we hear back from OnlyCat about whether there is a policyUpdate event, we can change this to use it instead.
         # api_client.add_event_listener("policyUpdate", self.on_policy_update)
