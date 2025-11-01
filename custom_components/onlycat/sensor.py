@@ -13,6 +13,8 @@ from homeassistant.components.sensor import (
 from homeassistant.const import EntityCategory
 from homeassistant.helpers.device_registry import DeviceInfo
 
+from custom_components.onlycat.data.device import DeviceUpdate
+
 from .const import DOMAIN
 from .data.policy import DeviceTransitPolicy
 
@@ -104,5 +106,21 @@ class OnlyCatTransitPolicyConfigSensor(SensorEntity):
         self.policy_id = device_transit_policy_id
         self._api_client = api_client
 
-        # TODO: When we hear back from OnlyCat about whether there is a policyUpdate event, we can change this to use it instead.
-        # api_client.add_event_listener("policyUpdate", self.on_policy_update)
+        # TODO: When we hear back from OnlyCat about whether there is a policyUpdate event, we should add a listener here to refresh this components local list.
+        api_client.add_event_listener("deviceUpdate", self.on_device_update)
+
+
+    async def on_device_update(self, data: dict) -> None:
+        """Handle device update event."""
+        if data["deviceId"] != self.device.device_id:
+            return
+        
+        _LOGGER.debug("Device update event received for sensor: %s", data)
+        
+        device_update = DeviceUpdate.from_api_response(data)
+        if device_update.body.device_transit_policy_id:
+            self._attr_extra_state_attributes["currently_active"] = (
+                device_update.body.device_transit_policy_id == self.policy_id
+            )
+
+        self.async_write_ha_state()
